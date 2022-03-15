@@ -41,8 +41,8 @@ public class YMLWriter {
         for (int i = 0; i<clientsYML.getClients().size(); i++){
             stringBuffer.append("  ").append("-").append(" ")
                     .append("identity: ").append(clientsYML.getClients().get(i).getIdentity()).append("\n")
-                    .append("    ").append("server").append(clientsYML.getClients().get(i).getServer()).append("\n")
-                    .append("    ").append("status").append(clientsYML.getClients().get(i).getStatus()).append("\n\n");
+                    .append("    ").append("server: ").append(clientsYML.getClients().get(i).getServer()).append("\n")
+                    .append("    ").append("status: ").append(clientsYML.getClients().get(i).getStatus()).append("\n\n");
         }
 
         String clientsYMLContent = stringBuffer.toString();
