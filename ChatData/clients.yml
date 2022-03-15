@@ -1,10 +1,10 @@
 clients:
 
   - identity: Alice
-    servers1
-    statusactive
+    server: s1
+    status: active
 
   - identity: Bob
-    servers2
-    statusactive
+    server: s2
+    status: active
 
