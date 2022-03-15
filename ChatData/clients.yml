@@ -1,10 +1,9 @@
 clients:
 
-  - identity: Alice
-    servers1
-    statusactive
+  - identity: "Alice"
+    server: "s1"
+    status: "active"
 
-  - identity: Bob
-    servers2
-    statusactive
-
+  - identity: "Bob"
+    server: "s2"
+    status: "active"
