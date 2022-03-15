@@ -1,0 +1,16 @@
+rooms:
+  - roomID: comp900
+    server: s1
+    owner: Alice
+    clients:
+      - Alice
+      - Bob
+      - Peter
+
+  - roomID: comp900
+      server: s1
+      owner: Bob
+      clients:
+        - Alice
+        - Bob
+        - Peter

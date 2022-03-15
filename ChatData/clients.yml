@@ -1,0 +1,10 @@
+clients:
+
+  - identity: Alice
+    servers1
+    statusactive
+
+  - identity: Bob
+    servers2
+    statusactive
+
