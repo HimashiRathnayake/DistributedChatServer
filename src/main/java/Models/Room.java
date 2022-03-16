@@ -1,4 +1,4 @@
-package Utils;
+package Models;
 
 import java.util.ArrayList;
 
@@ -7,7 +7,7 @@ public class Room {
     private String roomID;
     private String server;
     private String owner;
-    private ArrayList<String> clients;
+    private ArrayList<Client> clients;
 
     public String getRoomID() {
         return roomID;
@@ -25,11 +25,11 @@ public class Room {
         this.server = server;
     }
 
-    public ArrayList<String> getClients() {
+    public ArrayList<Client> getClients() {
         return clients;
     }
 
-    public void setClients(ArrayList<String> clients) {
+    public void setClients(ArrayList<Client> clients) {
         this.clients = clients;
     }
 

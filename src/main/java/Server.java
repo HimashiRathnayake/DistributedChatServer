@@ -1,6 +1,3 @@
-import Utils.YMLReader;
-import Utils.YMLWriter;
-import com.fasterxml.jackson.core.JsonParser;
 import org.json.JSONObject;
 
 import java.net.*;
@@ -60,7 +57,7 @@ public class Server {
     public static void main(String[] args) throws IOException {
 
 //        System.out.println(new YMLReader().readClientsYML().getClients());
-        new YMLWriter().writeClientsYML(new YMLReader().readClientsYML());
+//        new YMLWriter().writeClientsYML(new YMLReader().readClientsYML());
         ServerSocket ss = new ServerSocket(4444);
         Socket s = ss.accept();
         System.out.println("Client Connected");

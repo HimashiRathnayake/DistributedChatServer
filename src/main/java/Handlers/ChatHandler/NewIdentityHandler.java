@@ -1,9 +1,6 @@
-package Handlers;
+package Handlers.ChatHandler;
 
-import Utils.Client;
-import Utils.ClientsYML;
-import Utils.YMLReader;
-import Utils.YMLWriter;
+import Models.Client;
 
 import java.util.ArrayList;
 
@@ -20,10 +17,10 @@ public class NewIdentityHandler {
     public boolean checkIdentityUnique(String identity){
 
         boolean isIdentityUnique = false;
-        ArrayList<String> activeClients = new YMLReader().getActiveClientList();
-        if (! activeClients.contains(identity)){
-            isIdentityUnique = true;
-        }
+//        ArrayList<String> activeClients = new YMLReader().getActiveClientList();
+//        if (! activeClients.contains(identity)){
+//            isIdentityUnique = true;
+//        }
         return isIdentityUnique;
     }
 
@@ -33,9 +30,9 @@ public class NewIdentityHandler {
             client.setIdentity(identity);
             client.setServer(server);
             client.setStatus("active");
-            ClientsYML clientsYML = new YMLReader().readClientsYML();
-            clientsYML.getClients().add(client);
-            new YMLWriter().writeClientsYML(clientsYML);
+//            ClientsYML clientsYML = new YMLReader().readClientsYML();
+//            clientsYML.getClients().add(client);
+//            new YMLWriter().writeClientsYML(clientsYML);
         }
     }
 }
