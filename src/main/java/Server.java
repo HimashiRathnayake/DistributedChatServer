@@ -1,7 +1,10 @@
+import Services.ConfigFileReaderService;
 import org.json.JSONObject;
-
 import java.net.*;
 import java.io.*;
+import org.apache.log4j.Logger;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 
 //
 //public class Server
@@ -53,34 +56,72 @@ import java.io.*;
 //    }
 //}
 
+//=====================================================================================
+//public class Server {
+//    public static void main(String[] args) throws IOException {
+//
+////        System.out.println(new YMLReader().readClientsYML().getClients());
+////        new YMLWriter().writeClientsYML(new YMLReader().readClientsYML());
+//        ServerSocket ss = new ServerSocket(4444);
+//        Socket s = ss.accept();
+//        System.out.println("Client Connected");
+//        InputStreamReader in = new InputStreamReader(s.getInputStream());
+//        BufferedReader bf = new BufferedReader(in);
+//
+////        String msg = bf.readLine();
+////        System.out.println(msg);
+//        StringBuilder sb = new StringBuilder();
+//
+//
+////        String line;
+////        while ((line = bf.readLine()) != null) {
+////            sb.append(line);
+////        }
+//        sb.append(bf.readLine());
+//        System.out.println(sb);
+//        JSONObject json = new JSONObject(sb.toString());
+//        String identity = (String) json.get("identity");
+//        System.out.println(identity);
+////        JSONObject json = new JSONObject(sb.toString());
+////        System.out.println(json);
+//
+//    }
+//
+//}
+
 public class Server {
     public static void main(String[] args) throws IOException {
 
-//        System.out.println(new YMLReader().readClientsYML().getClients());
-//        new YMLWriter().writeClientsYML(new YMLReader().readClientsYML());
-        ServerSocket ss = new ServerSocket(4444);
-        Socket s = ss.accept();
-        System.out.println("Client Connected");
-        InputStreamReader in = new InputStreamReader(s.getInputStream());
-        BufferedReader bf = new BufferedReader(in);
+        String serverID;
+        String serversConf;
+        CmdLineValues values = new CmdLineValues();
+        CmdLineParser parser = new CmdLineParser(values);
 
-//        String msg = bf.readLine();
-//        System.out.println(msg);
-        StringBuilder sb = new StringBuilder();
+        try {
+            parser.parseArgument(args);
+            serverID = values.getServerId();
+            serversConf = values.getServerConfig();
+            System.setProperty("serverID", serverID);
 
+            Logger logger = Logger.getLogger(Server.class);
+            logger.info("Server configuration.");
 
-//        String line;
-//        while ((line = bf.readLine()) != null) {
-//            sb.append(line);
-//        }
-        sb.append(bf.readLine());
-        System.out.println(sb);
-        JSONObject json = new JSONObject(sb.toString());
-        String identity = (String) json.get("identity");
-        System.out.println(identity);
-//        JSONObject json = new JSONObject(sb.toString());
-//        System.out.println(json);
+            new ConfigFileReaderService().readConfigFile(serverID, serversConf);
+//            Thread coordinatorThread = new Thread(() -> {
+//                try {
+//                    CoordinationServer.getInstance().run();
+//                } catch (Exception e) {
+//                    logger.error(e.getMessage());
+//                }
+//            });
+//
+//            coordinatorThread.start();
+//            CoordinationServer.getInstance().SelectCoordinator();
+//            ChatClientServer.getInstance().run();
+
+        } catch (CmdLineException e) {
+            e.printStackTrace();
+        }
 
     }
-
 }
