@@ -52,13 +52,11 @@ public class Server {
                         Socket socket = client.socket();
                         int port = socket.getLocalPort();
                         if (server_info.getClientPort()==port){
-                            ChatClientService chatClient = new ChatClientService(socket);
-                            Thread chatClientThread = new Thread(chatClient);
-                            chatClientThread.start();
-                            System.out.println("Thread ID:" + chatClientThread.getId());
+                            ChatClientService clientThread = new ChatClientService(socket);
+                            clientThread.start();
+                            ServerState.getServerStateInstance().addNewClientThread(clientThread);
                         } else {
-                            CoordinationService coordinator = new CoordinationService(socket);
-                            Thread coordinatorThread = new Thread(coordinator);
+                            CoordinationService coordinatorThread = new CoordinationService(socket);
                             coordinatorThread.start();
                         }
                     }

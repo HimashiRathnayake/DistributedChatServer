@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public class CoordinationService implements Runnable{
+public class CoordinationService extends Thread{
     private final Socket coordinationSocket;
     Logger logger = Logger.getLogger(CoordinationService.class);
     private final JSONParser parser = new JSONParser();
@@ -20,7 +20,6 @@ public class CoordinationService implements Runnable{
         this.coordinationSocket = coordinationSocket;
     }
 
-    @Override
     public void run() {
         while (true){
             try {

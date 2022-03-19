@@ -15,7 +15,7 @@ public class ServerState {
     private ServerData coordinatorServerData;
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, ChatClientService> currentClientThreadsMap = new ConcurrentHashMap<>(); // List of the current client threads connected to server
+    private final ConcurrentHashMap<Long, ChatClientService> currentClientThreadsMap = new ConcurrentHashMap<>(); // List of the current client threads connected to server
     private final Logger logger = Logger.getLogger(ServerState.class);
 //    private final ConcurrentMap<String, ServerData> higherPriorityServers = new ConcurrentHashMap<>();
 //    private final ConcurrentMap<String, ServerData> lowerPriorityServers = new ConcurrentHashMap<>();
@@ -100,11 +100,11 @@ public class ServerState {
 //        return currentServerData.equals(coordinatorServerData);
 //    }
 
-//    public void addNewClientThread(ChatClientService clientHandlerThread) {
-//        currentClientThreadsMap.put(clientHandlerThread.getId(), clientHandlerThread);
-//    }
+    public void addNewClientThread(ChatClientService clientThread) {
+        currentClientThreadsMap.put(clientThread.getId(), clientThread);
+    }
 
-    public ChatClientService getClientThread(int threadID) {
+    public ChatClientService getClientThread(long threadID) {
         return currentClientThreadsMap.get(threadID);
     }
 }

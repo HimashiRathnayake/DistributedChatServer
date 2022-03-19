@@ -9,8 +9,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
-public class ChatClientService implements Runnable {
+public class ChatClientService extends Thread {
     private final Logger logger = Logger.getLogger(ChatClientService.class);
     private final Socket clientSocket;
     private final JSONParser parser = new JSONParser();
@@ -19,12 +20,11 @@ public class ChatClientService implements Runnable {
         this.clientSocket = clientSocket;
     }
 
-    @Override
     public void run() {
         while (true){
             try {
                 assert clientSocket != null;
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
                 JSONObject message = (JSONObject) parser.parse(in.readLine());
                 String type = (String) message.get("type");
                 System.out.println(message);
