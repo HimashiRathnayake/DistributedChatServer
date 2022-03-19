@@ -111,7 +111,7 @@ public class Server {
 
             new ConfigFileReaderService().readConfigFile(serverID, serversConf);
 
-            ServerData server_info = ServerState.getServerStateInstance().getServerData();
+            ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
             ServerSocket serverClientSocket = new ServerSocket(server_info.getClientPort());
             ChatClientService chatClient = ChatClientService.getInstance(serverClientSocket);
             Thread chatClientThread = new Thread(chatClient);

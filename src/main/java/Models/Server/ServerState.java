@@ -1,5 +1,9 @@
 package Models.Server;
 
+import Models.Client;
+import Models.Room;
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +14,8 @@ public class ServerState {
     private ServerData currentServerData;
     private ServerData coordinatorServerData;
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
+    private final Logger logger = Logger.getLogger(ServerState.class);
+
 //    private final ConcurrentMap<String, ServerData> higherPriorityServers = new ConcurrentHashMap<>();
 //    private final ConcurrentMap<String, ServerData> lowerPriorityServers = new ConcurrentHashMap<>();
 //    private final Queue<AbstractChatRequest> retryQueue = new ConcurrentLinkedQueue<>();
@@ -21,7 +27,7 @@ public class ServerState {
         return serverState;
     }
 
-    public synchronized void setServerState(String serverID) {
+    public synchronized void setCurrentServerData(String serverID) {
         currentServerData = serversList.get(serverID);
     }
 
@@ -29,15 +35,15 @@ public class ServerState {
         return serversList.get(serverID);
     }
 
-    public synchronized ServerData getServerData() {
+    public synchronized ServerData getCurrentServerData() {
         return currentServerData;
     }
 
-    public synchronized ConcurrentMap<String, ServerData> getServersData() {
+    public synchronized ConcurrentMap<String, ServerData> getServersList() {
         return serversList;
     }
 
-    public synchronized List<ServerData> getServersDataAsArray() {
+    public synchronized List<ServerData> getServersListAsArray() {
         return new ArrayList<>(serversList.values());
     }
 
@@ -47,7 +53,7 @@ public class ServerState {
 
     public void setCoordinator(ServerData coordinator) {
         this.coordinatorServerData = coordinator;
-        System.out.println("New coordinator is set");
+        logger.info("New coordinator is set");
     }
 
 //    public synchronized List<ServerData> getHigherServerInfo() {
@@ -57,7 +63,7 @@ public class ServerState {
 //    public synchronized List<ServerData> getLowerServerInfo() { return new ArrayList<>(lowerPriorityServers.values());
 //    }
 
-    public synchronized void setServersList(List<ServerData> serversList, String myServerId) {
+    public synchronized void setServerState(List<ServerData> serversList, String myServerId) {
         for (ServerData server : serversList) {
             if (!server.getServerID().equals(myServerId)) {
                 System.out.println("Add server: " + server.getServerID());
@@ -79,7 +85,6 @@ public class ServerState {
         serversList.put(externalServer.getServerID(), externalServer);
 
     }
-
 
 //    private int compare(String myServerId, String externalServerId) {
 //        if (null != myServerId && null != externalServerId) {

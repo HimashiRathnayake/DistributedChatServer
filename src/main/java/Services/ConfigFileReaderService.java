@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 
 public class ConfigFileReaderService {
 
-    private Logger logger = Logger.getLogger(ConfigFileReaderService.class);
+    private final Logger logger = Logger.getLogger(ConfigFileReaderService.class);
 
     public void readConfigFile(String currentServerID, String serversConfig){
         try{
@@ -34,7 +34,7 @@ public class ConfigFileReaderService {
             }
 
             buf.close();
-            ServerState.getServerStateInstance().setServersList(serverDataList, currentServerID);
+            ServerState.getServerStateInstance().setServerState(serverDataList, currentServerID);
             logger.info("Server Configuration Added");
 
         }catch(Exception e){
