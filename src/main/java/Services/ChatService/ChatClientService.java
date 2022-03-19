@@ -1,6 +1,4 @@
 package Services.ChatService;
-import Models.Server.ServerData;
-import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
