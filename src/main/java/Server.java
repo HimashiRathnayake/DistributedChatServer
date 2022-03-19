@@ -1,6 +1,7 @@
+import Models.Server.ServerData;
+import Models.Server.ServerState;
 import Services.ConfigFileReaderService;
 import Services.CoordinationService.CoordinationService;
-import org.json.JSONObject;
 import java.net.*;
 import java.io.*;
 import org.apache.log4j.Logger;
@@ -109,23 +110,17 @@ public class Server {
             logger.info("Server configuration.");
 
             new ConfigFileReaderService().readConfigFile(serverID, serversConf);
-            ChatClientService chatClient = ChatClientService.getInstance();
+
+            ServerData server_info = ServerState.getServerStateInstance().getServerData();
+            ServerSocket serverClientSocket = new ServerSocket(server_info.getClientPort());
+            ChatClientService chatClient = ChatClientService.getInstance(serverClientSocket);
             Thread chatClientThread = new Thread(chatClient);
-            CoordinationService coordinator = CoordinationService.getInstance();
-            Thread coordinatorThread = new Thread(coordinator);
             chatClientThread.start();
+
+            ServerSocket coordinationServerSocket = new ServerSocket(server_info.getCoordinationPort());
+            CoordinationService coordinator = CoordinationService.getInstance(coordinationServerSocket);
+            Thread coordinatorThread = new Thread(coordinator);
             coordinatorThread.start();
-//            Thread coordinatorThread = new Thread(() -> {
-//                try {
-//                    CoordinationServer.getInstance().run();
-//                } catch (Exception e) {
-//                    logger.error(e.getMessage());
-//                }
-//            });
-//
-//            coordinatorThread.start();
-//            CoordinationServer.getInstance().SelectCoordinator();
-//            ChatClientServer.getInstance().run();
 
         } catch (CmdLineException e) {
             e.printStackTrace();
