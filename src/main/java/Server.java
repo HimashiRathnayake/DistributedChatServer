@@ -1,10 +1,12 @@
 import Services.ConfigFileReaderService;
+import Services.CoordinationService.CoordinationService;
 import org.json.JSONObject;
 import java.net.*;
 import java.io.*;
 import org.apache.log4j.Logger;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import Services.ChatService.ChatClientService;
 
 //
 //public class Server
@@ -107,6 +109,12 @@ public class Server {
             logger.info("Server configuration.");
 
             new ConfigFileReaderService().readConfigFile(serverID, serversConf);
+            ChatClientService chatClient = ChatClientService.getInstance();
+            Thread chatClientThread = new Thread(chatClient);
+            CoordinationService coordinator = CoordinationService.getInstance();
+            Thread coordinatorThread = new Thread(coordinator);
+            chatClientThread.start();
+            coordinatorThread.start();
 //            Thread coordinatorThread = new Thread(() -> {
 //                try {
 //                    CoordinationServer.getInstance().run();
