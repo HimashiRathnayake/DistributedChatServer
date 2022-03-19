@@ -1,4 +1,6 @@
 package Services.ChatService;
+import Models.Server.ServerData;
+import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -6,40 +8,26 @@ import org.json.simple.parser.ParseException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ChatClientService implements Runnable {
-    private static ChatClientService ChatClientInstance;
     private final Logger logger = Logger.getLogger(ChatClientService.class);
-    private final ServerSocket serverClientSocket;
+    private final Socket clientSocket;
     private final JSONParser parser = new JSONParser();
 
-    private ChatClientService(ServerSocket serverClientSocket){
-        this.serverClientSocket = serverClientSocket;
-    }
-
-    public static ChatClientService getInstance(ServerSocket serverClientSocket){
-        if (ChatClientInstance== null){
-            ChatClientInstance = new ChatClientService(serverClientSocket);
-        }
-        return ChatClientInstance;
+    public ChatClientService(Socket clientSocket){
+        this.clientSocket = clientSocket;
     }
 
     @Override
     public void run() {
-        Socket clientSocket = null;
-        try {
-            clientSocket = serverClientSocket.accept();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         while (true){
             try {
                 assert clientSocket != null;
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
                 JSONObject message = (JSONObject) parser.parse(in.readLine());
                 String type = (String) message.get("type");
+                System.out.println(message);
                 switch(type){
                     case "list":
                         logger.info("Received message type list");
