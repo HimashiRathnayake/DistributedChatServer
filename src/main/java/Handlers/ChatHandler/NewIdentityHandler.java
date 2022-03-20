@@ -17,7 +17,6 @@ public class NewIdentityHandler {
     }
 
     public boolean checkIdentityRules(String identity){
-        //TODO: check whether identity starts with numeric
         boolean isIdentityGood;
         isIdentityGood = identity!= null && identity.matches("^[a-zA-Z][a-zA-Z0-9]*$")
                 && identity.length()>=3
