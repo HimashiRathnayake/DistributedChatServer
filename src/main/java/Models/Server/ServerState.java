@@ -16,7 +16,7 @@ public class ServerState {
     private ServerData currentServerData;
     private ServerData coordinatorServerData;
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, ChatClientService> clientServices = new ConcurrentHashMap<>();
     private final Logger logger = Logger.getLogger(ServerState.class);

@@ -1,9 +1,6 @@
 package Services.ChatService;
 
-import Handlers.ChatHandler.MessageHandler;
-import Handlers.ChatHandler.NewIdentityHandler;
-import Handlers.ChatHandler.QuitHandler;
-import Handlers.ChatHandler.ResponseHandler;
+import Handlers.ChatHandler.*;
 import Models.Client;
 import Models.Server.ServerState;
 import org.apache.log4j.Logger;
@@ -36,12 +33,22 @@ public class ChatClientService extends Thread {
                 JSONObject message = (JSONObject) parser.parse(in.readLine());
                 String type = (String) message.get("type");
                 System.out.println(message);
+
                 switch(type){
                     case "list":
                         logger.info("Received message type list");
+                        //TODO: get room list from other servers
+                        JSONObject roomListResponse = new ResponseHandler().sendRoomList(new RoomListHandler(responseHandler).getRoomList());
+                        send(roomListResponse);
                         break;
                     case "who":
                         logger.info("Received message type who");
+                        ClientListInRoomHandler clientListInRoomHandler = new ClientListInRoomHandler();
+                        String roomID = clientListInRoomHandler.getClientsRoomID(client.getIdentity());
+                        ArrayList<String> identities = clientListInRoomHandler.getClientsInRoom(roomID);
+                        String owner = clientListInRoomHandler.getRoomOwner(roomID);
+                        JSONObject clientInRoomListResponse = new ResponseHandler().sendClientListInChatRoom(roomID, identities, owner);
+                        send(clientInRoomListResponse);
                         break;
                     case "createroom":
                         logger.info("Received message type createroom");

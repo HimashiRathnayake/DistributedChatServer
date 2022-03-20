@@ -2,7 +2,29 @@ package Handlers.ChatHandler;
 
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+
 public class ResponseHandler {
+
+
+    // {type" : "roomlist", "rooms" : ["MainHall-s1", "MainHall-s2", "jokes"]}
+    @SuppressWarnings("unchecked")
+    public JSONObject sendRoomList(ArrayList<String> rooms){
+        JSONObject roomList = new JSONObject();
+        roomList.put("type", "roomlist");
+        roomList.put("rooms", rooms);
+        return roomList;
+    }
+
+    @SuppressWarnings("unchecked")
+    public JSONObject sendClientListInChatRoom(String roomid, ArrayList<String> identities, String owner){
+        JSONObject clientListInRoom = new JSONObject();
+        clientListInRoom.put("type", "roomcontents");
+        clientListInRoom.put("roomid", roomid);
+        clientListInRoom.put("identities", identities);
+        clientListInRoom.put("owner", owner);
+        return clientListInRoom;
+    }
 
     // {"type" : "newidentity", "approved" : "true"}
     @SuppressWarnings("unchecked")
@@ -33,5 +55,7 @@ public class ResponseHandler {
         response.put("content", content);
         return response;
     }
+
+
 
 }
