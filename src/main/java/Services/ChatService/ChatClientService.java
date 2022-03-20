@@ -4,6 +4,7 @@ import Handlers.ChatHandler.*;
 import Models.Client;
 import Models.Server.ServerState;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -73,16 +74,16 @@ public class ChatClientService extends Thread {
                         break;
                     case "deleteroom":
                         logger.info("Received message type deleteroom");
-                        Map<String, JSONObject> deleteRoomResponses = new DeleteRoomHandler(this.responseHandler).deleteRoom((String) message.get("roomid"), this.client);
-                        if (deleteRoomResponses.containsKey("accept")) {
-                            List<ChatClientService> clientThreadsDelete = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-                            for (ChatClientService service : clientThreadsDelete) {
-                                sendBroadcast(service.clientSocket, deleteRoomResponses.get("broadcast"));
+                        Map<String, ArrayList<JSONObject>> deleteRoomResponses = new DeleteRoomHandler(this.responseHandler).deleteRoom((String) message.get("roomid"), this.client);
+                        if (deleteRoomResponses.containsKey("broadcast")) {
+                            List<ChatClientService> clientThreads_deleteRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                            for (JSONObject deleteResponse : deleteRoomResponses.get("broadcast")) {
+                                for (ChatClientService service : clientThreads_deleteRoom) {
+                                    sendBroadcast(service.clientSocket, deleteResponse);
+                                }
                             }
-                            send(deleteRoomResponses.get("approve"));
-                        } else {
-                            send(deleteRoomResponses.get("reject"));
                         }
+                        send(deleteRoomResponses.get("client-only").get(0));
                         break;
                     case "quit":
                         logger.info("Received message type quit");
