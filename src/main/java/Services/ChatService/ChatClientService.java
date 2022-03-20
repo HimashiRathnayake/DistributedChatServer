@@ -71,6 +71,7 @@ public class ChatClientService extends Thread {
                         }
                         break;
                     case "movejoin":
+                        // TODO: have to check the functionality
                         logger.info("Received message type movejoin");
                         Map<String, JSONObject> movejoinResponses = new MoveJoinHandler(this.responseHandler).movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
                         send(movejoinResponses.get("client-only"));
@@ -85,14 +86,13 @@ public class ChatClientService extends Thread {
                         if (deleteRoomResponses.containsKey("broadcast")) {
                             List<ChatClientService> clientThreads_deleteRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                             for (JSONObject deleteResponse : deleteRoomResponses.get("broadcast")) {
+                                sendBroadcast(this.clientSocket, deleteResponse);
                                 for (ChatClientService service : clientThreads_deleteRoom) {
                                     sendBroadcast(service.clientSocket, deleteResponse);
                                 }
                             }
                         }
-                        for (JSONObject deleteResponse : deleteRoomResponses.get("broadcast")){
-                            sendBroadcast(this.clientSocket, deleteResponse);
-                        }
+
                         send(deleteRoomResponses.get("client-only").get(0));
                         break;
                     case "quit":
