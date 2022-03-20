@@ -112,6 +112,11 @@ public class ServerState {
         roomList.get(roomID).addClient(client);
     }
 
+    public void deleteRoomByOwner(String clientID) {
+
+        logger.info("Main Hall Created");
+    }
+
     // get all client threads in a room associated with a given client
     public List<ChatClientService> getClientServicesInRoomByClient(Client sender){
         for (Room room: roomList.values()){

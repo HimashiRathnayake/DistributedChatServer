@@ -2,6 +2,7 @@ package Services.ChatService;
 
 import Handlers.ChatHandler.MessageHandler;
 import Handlers.ChatHandler.NewIdentityHandler;
+import Handlers.ChatHandler.QuitHandler;
 import Handlers.ChatHandler.ResponseHandler;
 import Models.Client;
 import Models.Server.ServerState;
@@ -56,6 +57,7 @@ public class ChatClientService extends Thread {
                         break;
                     case "quit":
                         logger.info("Received message type quit");
+//                        new QuitHandler().handleQuit(this.client);
                         break;
                     case "newidentity":
                         logger.info("Received message type newidentity");
@@ -73,7 +75,7 @@ public class ChatClientService extends Thread {
                         List<ChatClientService> clientThreads = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         JSONObject messageResponse = new MessageHandler(this.responseHandler).handleMessage(clientID, content);
                         for (ChatClientService service: clientThreads){
-                            sendNew(service.clientSocket, messageResponse);
+                            sendBroadcast(service.clientSocket, messageResponse);
                         }
                         break;
                 }
@@ -91,7 +93,7 @@ public class ChatClientService extends Thread {
         out.flush();
     }
 
-    public void sendNew(Socket socket, JSONObject obj) throws IOException {
+    public void sendBroadcast(Socket socket, JSONObject obj) throws IOException {
         OutputStream out = socket.getOutputStream();
         out.write((obj.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
         out.flush();
