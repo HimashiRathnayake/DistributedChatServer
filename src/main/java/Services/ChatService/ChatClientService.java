@@ -38,14 +38,14 @@ public class ChatClientService extends Thread {
                 String type = (String) message.get("type");
                 System.out.println(message);
 
-                switch(type){
-                    case "list":
+                switch (type) {
+                    case "list" -> {
                         logger.info("Received message type list");
                         //TODO: get room list from other servers
                         JSONObject roomListResponse = new ResponseHandler().sendRoomList(new RoomListHandler(responseHandler).getRoomList());
                         send(roomListResponse);
-                        break;
-                    case "who":
+                    }
+                    case "who" -> {
                         logger.info("Received message type who");
                         ClientListInRoomHandler clientListInRoomHandler = new ClientListInRoomHandler();
                         String roomID = clientListInRoomHandler.getClientsRoomID(client.getIdentity());
@@ -53,32 +53,32 @@ public class ChatClientService extends Thread {
                         String owner = clientListInRoomHandler.getRoomOwner(roomID);
                         JSONObject clientInRoomListResponse = new ResponseHandler().sendClientListInChatRoom(roomID, identities, owner);
                         send(clientInRoomListResponse);
-                        break;
-                    case "createroom":
+                    }
+                    case "createroom" -> {
                         logger.info("Received message type createroom");
                         ArrayList<JSONObject> roomResponses = new CreateRoomHandler(this.responseHandler).createRoom(client, (String) message.get("roomid"));
                         for (JSONObject response : roomResponses) {
                             send(response);
                         }
-                        break;
-                    case "joinroom":
+                    }
+                    case "joinroom" -> {
                         logger.info("Received message type joinroom");
                         ArrayList<JSONObject> joinResponses = new JoinRoomHandler(this.responseHandler).joinRoom(client, (String) message.get("roomid"));
                         for (JSONObject response : joinResponses) {
                             send(response);
                         }
-                        break;
-                    case "movejoin":
+                    }
+                    case "movejoin" -> {
                         // TODO: have to check the functionality
                         logger.info("Received message type movejoin");
                         Map<String, JSONObject> movejoinResponses = new MoveJoinHandler(this.responseHandler).movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
                         send(movejoinResponses.get("client-only"));
                         List<ChatClientService> clientThreads_movejoin = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-                        for (ChatClientService service: clientThreads_movejoin){
+                        for (ChatClientService service : clientThreads_movejoin) {
                             sendBroadcast(service.clientSocket, movejoinResponses.get("broadcast"));
                         }
-                        break;
-                    case "deleteroom":
+                    }
+                    case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
                         Map<String, ArrayList<JSONObject>> deleteRoomResponses = new DeleteRoomHandler(this.responseHandler).deleteRoom((String) message.get("roomid"), this.client);
                         if (deleteRoomResponses.containsKey("broadcast")) {
@@ -91,8 +91,8 @@ public class ChatClientService extends Thread {
                             }
                         }
                         send(deleteRoomResponses.get("client-only").get(0));
-                        break;
-                    case "quit":
+                    }
+                    case "quit" -> {
                         logger.info("Received message type quit");
                         List<ChatClientService> clientThreads_quit = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         Map<String, ArrayList<JSONObject>> quitResponses = new QuitHandler(this.responseHandler).handleQuit(this.client);
@@ -103,35 +103,40 @@ public class ChatClientService extends Thread {
                                 }
                             }
                         }
-                        if (quitResponses.containsKey("reply")){
+                        if (quitResponses.containsKey("reply")) {
                             send(quitResponses.get("reply").get(0));
                         }
-                        if (quitResponses.containsKey("client-only")){
+                        if (quitResponses.containsKey("client-only")) {
                             send(quitResponses.get("client-only").get(0));
                         }
                         // server closes the connection
                         ServerState.getServerStateInstance().clientServices.remove(this.client.getIdentity());
                         this.stopThread();
-                        break;
-                    case "newidentity":
+                    }
+                    case "newidentity" -> {
                         logger.info("Received message type newidentity");
                         // TODO: Send to coordinator for approving new identity
                         this.client = new Client();
-                        ArrayList<JSONObject> responses = new NewIdentityHandler(this.responseHandler).addNewIdentity(this, client, (String) message.get("identity"));
-                        for (JSONObject response : responses) {
-                            send(response);
+                        Map<String, JSONObject> responses = new NewIdentityHandler(this.responseHandler).addNewIdentity(this, client, (String) message.get("identity"));
+                        List<ChatClientService> clientThreads_newId = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                        send(responses.get("client-only"));
+                        send(responses.get("broadcast"));
+                        if (responses.containsKey("broadcast")) {
+                            for (ChatClientService service : clientThreads_newId) {
+                                sendBroadcast(service.clientSocket, responses.get("broadcast"));
+                            }
                         }
-                        break;
-                    case "message":
+                    }
+                    case "message" -> {
                         logger.info("Received message type message");
                         String clientID = this.client.getIdentity();
                         String content = (String) message.get("content");
                         List<ChatClientService> clientThreads = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         JSONObject messageResponse = new MessageHandler(this.responseHandler).handleMessage(clientID, content);
-                        for (ChatClientService service: clientThreads){
+                        for (ChatClientService service : clientThreads) {
                             sendBroadcast(service.clientSocket, messageResponse);
                         }
-                        break;
+                    }
                 }
             } catch (IOException | ParseException e) {
                 logger.error("Exception occurred" + e.getMessage());
@@ -143,7 +148,7 @@ public class ChatClientService extends Thread {
 
     //TODO: Remove this and merge to following one
     public void send(JSONObject obj) throws IOException {
-        OutputStream out = clientSocket.getOutputStream();
+        OutputStream out = this.clientSocket.getOutputStream();
         out.write((obj.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
         out.flush();
     }

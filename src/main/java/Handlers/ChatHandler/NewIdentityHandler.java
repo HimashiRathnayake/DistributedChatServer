@@ -6,9 +6,7 @@ import Services.ChatService.ChatClientService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 public class NewIdentityHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
@@ -47,9 +45,9 @@ public class NewIdentityHandler {
         return response;
     }
 
-    public ArrayList<JSONObject> addNewIdentity(ChatClientService service, Client client, String identity){
+    public Map<String, JSONObject> addNewIdentity(ChatClientService service, Client client, String identity){
 
-        ArrayList<JSONObject> responses = new ArrayList<>();
+        Map<String, JSONObject> responses = new HashMap<>();
         if (checkIdentityUnique(identity) && checkIdentityRules(identity)){
             client.setIdentity(identity);
             client.setServer(System.getProperty("serverID"));
@@ -57,12 +55,11 @@ public class NewIdentityHandler {
             ServerState.getServerStateInstance().clientServices.put(identity, service);
             ServerState.getServerStateInstance().clients.put(identity, client);
             logger.info("New identity creation accepted");
-            responses.add(responseHandler.sendNewIdentityResponse("true"));
-            responses.add(moveToMainHall(client));
-
+            responses.put("client-only", responseHandler.sendNewIdentityResponse("true"));
+            responses.put("broadcast", moveToMainHall(client));
         } else {
             logger.info("New identity creation rejected");
-            responses.add(responseHandler.sendNewIdentityResponse("false"));
+            responses.put("client-only", responseHandler.sendNewIdentityResponse("false"));
         }
         return responses;
     }

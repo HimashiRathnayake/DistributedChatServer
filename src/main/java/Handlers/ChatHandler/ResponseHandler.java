@@ -42,7 +42,6 @@ public class ResponseHandler {
         moveRoom.put("identity", clientID);
         moveRoom.put("former", formerID);
         moveRoom.put("roomid", roomID);
-
         return moveRoom;
     }
 
@@ -69,12 +68,12 @@ public class ResponseHandler {
     // {"type" : "roomchange", "identity" : "Adel", "former" : "", "roomid" : "MainHall-s1"}
     @SuppressWarnings("unchecked")
     public JSONObject broadCastRoomChange(String clientID, String formerID, String roomID){
-        JSONObject newIdentity = new JSONObject();
-        newIdentity.put("type", "roomchange");
-        newIdentity.put("identity", clientID);
-        newIdentity.put("former", formerID);
-        newIdentity.put("roomid", roomID);
-        return newIdentity;
+        JSONObject response = new JSONObject();
+        response.put("type", "roomchange");
+        response.put("identity", clientID);
+        response.put("former", formerID);
+        response.put("roomid", roomID);
+        return response;
     }
 
     // {"type" : "deleteroom", "roomid" : "jokes", "approved" : "false"}
