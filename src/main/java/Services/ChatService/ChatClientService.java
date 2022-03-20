@@ -5,6 +5,7 @@ import Handlers.ChatHandler.MoveJoinHandler;
 import Handlers.ChatHandler.NewIdentityHandler;
 import Handlers.ChatHandler.ResponseHandler;
 import Models.Client;
+import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -14,6 +15,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ChatClientService extends Thread {
     private final Logger logger = Logger.getLogger(ChatClientService.class);
@@ -47,15 +49,6 @@ public class ChatClientService extends Thread {
                     case "joinroom":
                         logger.info("Received message type joinroom");
                         break;
-                    case "roomchange":
-                        logger.info("Received message type roomchange");
-                        break;
-                    case "roomlist":
-                        logger.info("Received message type roomlist");
-                        break;
-                    case "roomcontents":
-                        logger.info("Received message type roomcontents");
-                        break;
                     case "movejoin":
                         logger.info("Received message type movejoin");
                         JSONObject movejoinResponse = new MoveJoinHandler().movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
@@ -71,19 +64,16 @@ public class ChatClientService extends Thread {
                         logger.info("Received message type newidentity");
                         // TODO: Send to coordinator for approving new identity
                         this.client = new Client();
-                        ArrayList<JSONObject> responses = new NewIdentityHandler(this.responseHandler).addNewIdentity(client, (String) message.get("identity"));
-                        for (JSONObject response: responses){
+                        ArrayList<JSONObject> responses = new NewIdentityHandler(this.responseHandler).addNewIdentity(this, client, (String) message.get("identity"));
+                        for (JSONObject response : responses) {
                             send(response);
                         }
                         break;
-                    case "route":
-                        logger.info("Received message type route");
-                        break;
-                    case "serverchange":
-                        logger.info("Received message type serverchange");
-                        break;
                     case "message":
                         logger.info("Received message type message");
+//                        String clientID = this.client.getIdentity();
+//                        String content = (String) message.get("content");
+//                        List<ChatClientService> clientThreads = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         break;
                 }
             } catch (IOException | ParseException e) {

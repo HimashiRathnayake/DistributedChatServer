@@ -2,6 +2,7 @@ package Handlers.ChatHandler;
 
 import Models.Client;
 import Models.Server.ServerState;
+import Services.ChatService.ChatClientService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -46,13 +47,14 @@ public class NewIdentityHandler {
         return response;
     }
 
-    public ArrayList<JSONObject> addNewIdentity(Client client, String identity){
+    public ArrayList<JSONObject> addNewIdentity(ChatClientService service, Client client, String identity){
 
         ArrayList<JSONObject> responses = new ArrayList<>();
         if (checkIdentityUnique(identity) && checkIdentityRules(identity)){
             client.setIdentity(identity);
             client.setServer(System.getProperty("serverID"));
             client.setStatus("active");
+            ServerState.getServerStateInstance().clientServices.put(identity, service);
             ServerState.getServerStateInstance().clients.put(identity, client);
             logger.info("New identity creation accepted");
             responses.add(responseHandler.sendNewIdentityResponse("true"));

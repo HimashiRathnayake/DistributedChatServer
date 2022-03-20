@@ -2,10 +2,12 @@ package Models.Server;
 
 import Models.Client;
 import Models.Room;
+import Services.ChatService.ChatClientService;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -16,6 +18,7 @@ public class ServerState {
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, ChatClientService> clientServices = new ConcurrentHashMap<>();
     private final Logger logger = Logger.getLogger(ServerState.class);
 //    private final ConcurrentMap<String, ServerData> higherPriorityServers = new ConcurrentHashMap<>();
 //    private final ConcurrentMap<String, ServerData> lowerPriorityServers = new ConcurrentHashMap<>();
@@ -111,6 +114,19 @@ public class ServerState {
 
     public void addClientToRoom(String roomID, Client client){
         roomList.get(roomID).addClient(client);
+    }
+
+    // get all client threads in a room associated with a given client
+    public List<ChatClientService> getClientServicesInRoomByClient(Client client){
+        for (Room room: roomList.values()){
+            if (room.getClients().contains(client)){
+                List<String> roomClients = room.getClients().stream().map(Client::getIdentity).toList();
+                return roomClients.stream()
+                                .map(clientServices::get)
+                                .filter(Objects::nonNull).toList();
+            }
+        }
+        return null;
     }
 
 }
