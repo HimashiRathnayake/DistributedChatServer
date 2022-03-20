@@ -54,6 +54,7 @@ public class ChatClientService extends Thread {
                         break;
                     case "movejoin":
                         logger.info("Received message type movejoin");
+
                         break;
                     case "deleteroom":
                         logger.info("Received message type deleteroom");

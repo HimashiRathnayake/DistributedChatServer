@@ -56,6 +56,7 @@ public class Server {
                     if (key.isAcceptable()) {
                         SocketChannel client = ((ServerSocketChannel) key.channel()).accept();
                         Socket socket = client.socket();
+                        System.out.println("New client or server");
                         int port = socket.getLocalPort();
                         if (server_info.getClientPort()==port){
                             ChatClientService clientThread = new ChatClientService(socket);
