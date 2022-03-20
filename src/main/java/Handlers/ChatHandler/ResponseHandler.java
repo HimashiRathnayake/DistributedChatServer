@@ -34,7 +34,22 @@ public class ResponseHandler {
         return response;
     }
     //            {"type" : "serverchange", "approved" : "true", "serverid" : "s2"}
-    public JSONObject moveJoinRoomChange(){
-
+    @SuppressWarnings("unchecked")
+    public JSONObject serverChangedResponse(){
+        JSONObject response= new JSONObject();
+        response.put("type", "serverchange");
+        response.put("approved", "true");
+        response.put("serverid", System.getProperty("serverID"));
+        return  response;
+    }
+    // {"type" : "roomchange", "identity" : "Adel", "former" : "", "roomid" : "MainHall-s1"}
+    @SuppressWarnings("unchecked")
+    public JSONObject broadCastRoomChange(String clientID, String formerID, String roomID){
+        JSONObject newIdentity = new JSONObject();
+        newIdentity.put("type", "roomchange");
+        newIdentity.put("identity", clientID);
+        newIdentity.put("former", formerID);
+        newIdentity.put("roomid", roomID);
+        return newIdentity;
     }
 }

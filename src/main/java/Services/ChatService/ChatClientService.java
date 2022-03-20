@@ -16,6 +16,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ChatClientService extends Thread {
     private final Logger logger = Logger.getLogger(ChatClientService.class);
@@ -51,8 +52,9 @@ public class ChatClientService extends Thread {
                         break;
                     case "movejoin":
                         logger.info("Received message type movejoin");
-                        JSONObject movejoinResponse = new MoveJoinHandler().movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
-                        send(movejoinResponse);
+                        Map<String, JSONObject> movejoinResponses = new MoveJoinHandler(this.responseHandler).movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
+                        send(movejoinResponses.get("client-only"));
+
                         break;
                     case "deleteroom":
                         logger.info("Received message type deleteroom");
