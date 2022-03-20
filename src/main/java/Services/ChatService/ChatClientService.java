@@ -21,13 +21,18 @@ public class ChatClientService extends Thread {
     private final JSONParser parser = new JSONParser();
     private Client client;
     private final ResponseHandler responseHandler = new ResponseHandler();
+    private boolean blinker = true;
 
     public ChatClientService(Socket clientSocket){
         this.clientSocket = clientSocket;
     }
 
+    public void stopThread() {
+        blinker = false;
+    }
+
     public void run() {
-        while (true){
+        while (blinker){
             try {
                 assert clientSocket != null;
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
@@ -85,7 +90,7 @@ public class ChatClientService extends Thread {
                         send(quitResponses.get("reply"));
                         // server closes the connection
                         ServerState.getServerStateInstance().clientServices.remove(this.client.getIdentity());
-                        this.join();
+                        this.stopThread();
                         break;
                     case "newidentity":
                         logger.info("Received message type newidentity");
@@ -107,9 +112,10 @@ public class ChatClientService extends Thread {
                         }
                         break;
                 }
-            } catch (IOException | ParseException | InterruptedException e) {
+            } catch (IOException | ParseException e) {
                 logger.error("Exception occurred" + e.getMessage());
                 e.printStackTrace();
+                System.exit(1);
             }
         }
     }
