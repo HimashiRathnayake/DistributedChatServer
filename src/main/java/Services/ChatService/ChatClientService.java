@@ -73,9 +73,13 @@ public class ChatClientService extends Thread {
                         break;
                     case "message":
                         logger.info("Received message type message");
-//                        String clientID = this.client.getIdentity();
-//                        String content = (String) message.get("content");
-//                        List<ChatClientService> clientThreads = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                        String clientID = this.client.getIdentity();
+                        String content = (String) message.get("content");
+                        List<ChatClientService> clientThreads = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                        JSONObject messageResponse = new MessageHandler(this.responseHandler).handleMessage(clientID, content);
+                        for (ChatClientService service: clientThreads){
+                            sendNew(service.clientSocket, messageResponse);
+                        }
                         break;
                 }
             } catch (IOException | ParseException e) {
@@ -85,9 +89,17 @@ public class ChatClientService extends Thread {
         }
     }
 
+    //TODO: Remove this and merge to following one
     public void send(JSONObject obj) throws IOException {
         OutputStream out = clientSocket.getOutputStream();
-        out.write((obj.toJSONString() + "\n").getBytes("UTF-8"));
+        out.write((obj.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
         out.flush();
     }
+
+    public void sendNew(Socket socket, JSONObject obj) throws IOException {
+        OutputStream out = socket.getOutputStream();
+        out.write((obj.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
+        out.flush();
+    }
+
 }
