@@ -44,14 +44,14 @@ public class Room {
         this.clients.add(client);
     }
 
-    public synchronized void removeClient(String clientID){
-        for(Client client :this.clients){
-            if(client.identity.equals(clientID)){
-                this.clients.remove(client);
-                break;
-            }
-        }
-    }
+//    public synchronized void removeClient(String clientID){
+//        for(Client client :this.clients){
+//            if(client.identity.equals(clientID)){
+//                this.clients.remove(client);
+//                break;
+//            }
+//        }
+//    }
 
     public String getOwner() {
         return owner;

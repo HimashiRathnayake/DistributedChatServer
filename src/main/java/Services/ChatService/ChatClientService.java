@@ -54,7 +54,10 @@ public class ChatClientService extends Thread {
                         logger.info("Received message type movejoin");
                         Map<String, JSONObject> movejoinResponses = new MoveJoinHandler(this.responseHandler).movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
                         send(movejoinResponses.get("client-only"));
-
+                        List<ChatClientService> clientThreads_movejoin = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                        for (ChatClientService service: clientThreads_movejoin){
+                            sendNew(service.clientSocket, movejoinResponses.get("broadcast"));
+                        }
                         break;
                     case "deleteroom":
                         logger.info("Received message type deleteroom");

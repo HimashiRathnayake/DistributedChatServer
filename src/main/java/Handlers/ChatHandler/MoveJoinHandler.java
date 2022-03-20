@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -20,23 +21,23 @@ public class MoveJoinHandler {
     }
 
     public Map<String, JSONObject> movejoin(String formerRoomID, String joinRoomID, String ClientID, Client client){
-        Map<String, JSONObject> responses = new ArrayList<>();
+        Map<String, JSONObject> responses = new HashMap<>();
         ConcurrentMap<String, Room> roomList = ServerState.getServerStateInstance().getRoomList();
+        Room joinRoom;
         if(roomList.containsKey(joinRoomID)){
-            Room formerRoom = roomList.get(formerRoomID);
-            formerRoom.removeClient(ClientID);    // client is removed from the former room
-            Room joinRoom = roomList.get(joinRoomID);
-            joinRoom.addClient(client);
-            JSONObject serverChangedResponse = this.responseHandler.serverChangedResponse();
-            JSONObject roomChangedResponse = this.responseHandler.broadCastRoomChange(ClientID,formerRoomID,joinRoomID);
-            responses.put("client-only",serverChangedResponse);
-            responses.put("broadcast",roomChangedResponse);
-            return responses;
+//            Room formerRoom = roomList.get(formerRoomID);
+//            formerRoom.removeClient(ClientID);    // client is removed from the former room
+            joinRoom= roomList.get(joinRoomID);
         }else{
-            logger.error("former room is not exist");
-            // TODO: should check from the global room list and act accordingly
-            return null;
+            logger.error("Join room is not exist and move client to the main hall");
+            joinRoom = roomList.get("MainHall-"+System.getProperty("serverID"));
         }
+        joinRoom.addClient(client);
+        JSONObject serverChangedResponse = this.responseHandler.serverChangedResponse();
+        JSONObject roomChangedResponse = this.responseHandler.broadCastRoomChange(ClientID,formerRoomID,joinRoom.getRoomID());
+        responses.put("client-only",serverChangedResponse);
+        responses.put("broadcast",roomChangedResponse);
+        return responses;
     }
 
 }
