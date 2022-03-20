@@ -1,9 +1,6 @@
 package Services.ChatService;
 
-import Handlers.ChatHandler.MessageHandler;
-import Handlers.ChatHandler.MoveJoinHandler;
-import Handlers.ChatHandler.NewIdentityHandler;
-import Handlers.ChatHandler.ResponseHandler;
+import Handlers.ChatHandler.*;
 import Models.Client;
 import Models.Server.ServerState;
 import org.apache.log4j.Logger;
@@ -61,6 +58,7 @@ public class ChatClientService extends Thread {
                         break;
                     case "deleteroom":
                         logger.info("Received message type deleteroom");
+                        new DeleteRoomHandler(this.responseHandler).deleteRoom((String) message.get("roomid"), this.client);
                         break;
                     case "quit":
                         logger.info("Received message type quit");

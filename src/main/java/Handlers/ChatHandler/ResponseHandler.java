@@ -52,4 +52,24 @@ public class ResponseHandler {
         newIdentity.put("roomid", roomID);
         return newIdentity;
     }
+
+//    {"type" : "deleteroom", "roomid" : "jokes", "approved" : "false"}
+    @SuppressWarnings("unchecked")
+    public JSONObject deleteRoomResponse(String roomID,boolean isApprove){
+        JSONObject response = new JSONObject();
+        response.put("type" , "deleteroom");
+        response.put("roomid", roomID);
+        response.put("approved", isApprove);
+        return  response;
+    }
+
+//    {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}
+    @SuppressWarnings("unchecked")
+    public JSONObject broadcastServersDeleteRoomResponse(String serverID, String roomID){
+        JSONObject response = new JSONObject();
+        response.put("type", "deleteroom");
+        response.put("serverid", serverID);
+        response.put("roomid", roomID);
+        return response;
+    }
 }
