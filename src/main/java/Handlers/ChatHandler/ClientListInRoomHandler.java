@@ -10,8 +10,6 @@ import java.util.Objects;
 
 public class ClientListInRoomHandler {
 
-//    RoomsYML roomsYML = new YMLReader().readRoomsYML();
-
     public String getClientsRoomID(String identity){
 
         String roomid = null;
