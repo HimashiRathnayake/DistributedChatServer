@@ -35,7 +35,7 @@ public class Server {
 
             new ConfigFileReaderService().readConfigFile(serverID, serversConf);
 
-            Room mainHall = new Room("MainHall-"+serverID, serverID, serverID, new ArrayList<Client>());
+            Room mainHall = new Room("MainHall-"+serverID, serverID, "", new ArrayList<Client>());
             ServerState.getServerStateInstance().addNewRoom(mainHall);
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
