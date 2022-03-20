@@ -1,15 +1,27 @@
 package Handlers.ChatHandler;
 
+import Models.Server.ServerState;
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class RoomListHandler{
 
-    public ArrayList<String> getRoomList(String identity){
+    private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
+    private final ResponseHandler responseHandler;
+
+    public RoomListHandler(ResponseHandler responseHandler) {
+        this.responseHandler = responseHandler;
+    }
+
+    public ArrayList<String> getRoomList(){
         ArrayList<String> roomList = new ArrayList<>();
-//        RoomsYML roomsYML = new YMLReader().readRoomsYML();
-//        for (int i = 0; i<roomsYML.getRooms().size(); i++){
-//            roomList.add(roomsYML.getRooms().get(i).getRoomID());
-//        }
+        for (Iterator<String> it = ServerState.getServerStateInstance().roomList.keys().asIterator(); it.hasNext();){
+            String roomID = it.next();
+            roomList.add(roomID);
+        }
+        logger.info("room List : "+roomList);
         return roomList;
     }
 }
