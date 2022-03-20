@@ -85,14 +85,13 @@ public class ChatClientService extends Thread {
                         if (deleteRoomResponses.containsKey("broadcast")) {
                             List<ChatClientService> clientThreads_deleteRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                             for (JSONObject deleteResponse : deleteRoomResponses.get("broadcast")) {
+                                sendBroadcast(this.clientSocket, deleteResponse);
                                 for (ChatClientService service : clientThreads_deleteRoom) {
                                     sendBroadcast(service.clientSocket, deleteResponse);
                                 }
                             }
                         }
-                        for (JSONObject deleteResponse : deleteRoomResponses.get("broadcast")){
-                            sendBroadcast(this.clientSocket, deleteResponse);
-                        }
+
                         send(deleteRoomResponses.get("client-only").get(0));
                         break;
                     case "quit":
