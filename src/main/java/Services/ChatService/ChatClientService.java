@@ -71,6 +71,7 @@ public class ChatClientService extends Thread {
                         }
                         break;
                     case "movejoin":
+                        // TODO: have to check the functionality
                         logger.info("Received message type movejoin");
                         Map<String, JSONObject> movejoinResponses = new MoveJoinHandler(this.responseHandler).movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
                         send(movejoinResponses.get("client-only"));
