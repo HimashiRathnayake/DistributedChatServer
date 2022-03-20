@@ -46,6 +46,18 @@ public class Room {
 
     public void removeClient(Client client){
         this.clients.remove(client);
+
+    public void addClientList(ArrayList<Client> client){
+        this.clients.addAll(client);
+    }
+
+    public synchronized void removeClient1(String clientID){
+        for(Client client :this.clients){
+            if(client.identity.equals(clientID)){
+                this.clients.remove(client);
+                break;
+            }
+        }
     }
 
     public String getOwner() {

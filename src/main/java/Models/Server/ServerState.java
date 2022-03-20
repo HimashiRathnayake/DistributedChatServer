@@ -55,6 +55,10 @@ public class ServerState {
         return coordinatorServerData;
     }
 
+    public synchronized ConcurrentMap<String, Room> getRoomList(){
+        return roomList;
+    }
+
     public void setCoordinator(ServerData coordinator) {
         this.coordinatorServerData = coordinator;
         logger.info("New coordinator is set");
@@ -118,12 +122,34 @@ public class ServerState {
 
     // get all client threads in a room associated with a given client
     public List<ChatClientService> getClientServicesInRoomByClient(Client client){
+
+    public Room getOwningRoom(String clientID) {
+        for (Room room: roomList.values()){
+            if (Objects.equals(room.getOwner(), clientID)){
+                return room;
+            }
+        }
+        return null;
+    }
+
+    public String removeClientFromRoom1(Client client) {
         for (Room room: roomList.values()){
             if (room.getClients().contains(client)){
-                List<String> roomClients = room.getClients().stream().map(Client::getIdentity).toList();
-                return roomClients.stream()
-                                .map(clientServices::get)
-                                .filter(Objects::nonNull).toList();
+                String formerRoom = room.getRoomID();
+                room.removeClient(client.getIdentity());
+                return formerRoom;
+            }
+        }
+        return null;
+    }
+
+    // get all client threads in a room associated with a given client
+    public List<ChatClientService> getClientServicesInRoomByClient(Client sender){
+        for (Room room: roomList.values()){
+            if (room.getClients().contains(sender)){
+                List<String> roomClients = room.getClients().stream().map(Client::getIdentity)
+                        .filter(c -> !Objects.equals(c, sender.getIdentity())).toList();
+                return roomClients.stream().map(clientServices::get).filter(Objects::nonNull).toList();
             }
         }
         return null;
