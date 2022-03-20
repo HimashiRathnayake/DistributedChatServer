@@ -1,20 +1,22 @@
 package Services.ChatService;
 
+import Handlers.ChatHandler.NewIdentityHandler;
+import Handlers.ChatHandler.ResponseHandler;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 public class ChatClientService extends Thread {
     private final Logger logger = Logger.getLogger(ChatClientService.class);
     private final Socket clientSocket;
     private final JSONParser parser = new JSONParser();
+    private final ResponseHandler responseHandler = new ResponseHandler();
 
     public ChatClientService(Socket clientSocket){
         this.clientSocket = clientSocket;
@@ -61,6 +63,11 @@ public class ChatClientService extends Thread {
                         break;
                     case "newidentity":
                         logger.info("Received message type newidentity");
+                        // TODO: Send to coordinator for approving new identity
+                        ArrayList<JSONObject> responses = new NewIdentityHandler(this.responseHandler).addNewIdentity((String) message.get("identity"));
+                        for (JSONObject response: responses){
+                            send(response);
+                        }
                         break;
                     case "route":
                         logger.info("Received message type route");
@@ -77,5 +84,11 @@ public class ChatClientService extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void send(JSONObject obj) throws IOException {
+        OutputStream out = clientSocket.getOutputStream();
+        out.write((obj.toJSONString() + "\n").getBytes("UTF-8"));
+        out.flush();
     }
 }

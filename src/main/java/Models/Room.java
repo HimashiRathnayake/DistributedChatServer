@@ -9,6 +9,13 @@ public class Room {
     private String owner;
     private ArrayList<Client> clients;
 
+    public Room(String roomID, String server, String owner, ArrayList<Client> clients) {
+        this.roomID = roomID;
+        this.server = server;
+        this.owner = owner;
+        this.clients = clients;
+    }
+
     public String getRoomID() {
         return roomID;
     }
@@ -31,6 +38,10 @@ public class Room {
 
     public void setClients(ArrayList<Client> clients) {
         this.clients = clients;
+    }
+
+    public void addClient(Client client){
+        this.clients.add(client);
     }
 
     public String getOwner() {

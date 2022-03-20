@@ -1,3 +1,5 @@
+import Models.Client;
+import Models.Room;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ConfigFileReaderService;
@@ -5,6 +7,7 @@ import Services.ConfigFileReaderService;
 import java.net.*;
 import java.io.*;
 import java.nio.channels.*;
+import java.util.ArrayList;
 import java.util.Set;
 
 import Services.CoordinationService.CoordinationService;
@@ -32,6 +35,9 @@ public class Server {
 
             new ConfigFileReaderService().readConfigFile(serverID, serversConf);
 
+            Room mainHall = new Room("MainHall-"+serverID, serverID, serverID, new ArrayList<Client>());
+            ServerState.getServerStateInstance().addNewRoom(mainHall);
+
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
             Selector selector = Selector.open();
             int[] ports = {server_info.getClientPort(), server_info.getCoordinationPort()};
@@ -54,7 +60,6 @@ public class Server {
                         if (server_info.getClientPort()==port){
                             ChatClientService clientThread = new ChatClientService(socket);
                             clientThread.start();
-                            ServerState.getServerStateInstance().addNewClientThread(clientThread);
                         } else {
                             CoordinationService coordinatorThread = new CoordinationService(socket);
                             coordinatorThread.start();

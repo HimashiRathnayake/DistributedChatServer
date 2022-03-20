@@ -1,10 +1,21 @@
 package Handlers.ChatHandler;
 
 import Models.Client;
+import Models.Server.ServerState;
+import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Objects;
 
 public class NewIdentityHandler {
+    private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
+    private final ResponseHandler responseHandler;
+
+    public NewIdentityHandler(ResponseHandler responseHandler){
+        this.responseHandler = responseHandler;
+    }
 
     public boolean checkIdentityRules(String identity){
         boolean isIdentityGood;
@@ -16,23 +27,41 @@ public class NewIdentityHandler {
 
     public boolean checkIdentityUnique(String identity){
 
-        boolean isIdentityUnique = false;
-//        ArrayList<String> activeClients = new YMLReader().getActiveClientList();
-//        if (! activeClients.contains(identity)){
-//            isIdentityUnique = true;
-//        }
+        boolean isIdentityUnique = true;
+        // TODO: Check identity from all servers.
+        for (Iterator<String> it = ServerState.getServerStateInstance().clients.keys().asIterator(); it.hasNext(); ) {
+            String client = it.next();
+            if (Objects.equals(client, identity)){
+                isIdentityUnique = false;
+            }
+        }
         return isIdentityUnique;
     }
 
-    public void addNewIdentity(String identity, String server){
+    public JSONObject moveToMainHall(Client client){
+        JSONObject response;
+        String roomID = "MainHall-" + System.getProperty("serverID");
+        ServerState.getServerStateInstance().addClientToRoom(roomID, client);
+        response = responseHandler.moveToRoomResponse(client.getIdentity(), "", roomID);
+        return response;
+    }
+
+    public ArrayList<JSONObject> addNewIdentity(String identity){
         Client client = new Client();
+        ArrayList<JSONObject> responses = new ArrayList<>();
         if (checkIdentityUnique(identity) && checkIdentityRules(identity)){
             client.setIdentity(identity);
-            client.setServer(server);
+            client.setServer(System.getProperty("serverID"));
             client.setStatus("active");
-//            ClientsYML clientsYML = new YMLReader().readClientsYML();
-//            clientsYML.getClients().add(client);
-//            new YMLWriter().writeClientsYML(clientsYML);
+            ServerState.getServerStateInstance().clients.put(identity, client);
+            logger.info("New identity creation accepted");
+            responses.add(responseHandler.sendNewIdentityResponse("true"));
+            responses.add(moveToMainHall(client));
+
+        } else {
+            logger.info("New identity creation rejected");
+            responses.add(responseHandler.sendNewIdentityResponse("false"));
         }
+        return responses;
     }
 }

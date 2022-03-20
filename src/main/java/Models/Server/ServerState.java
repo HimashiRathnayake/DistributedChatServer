@@ -1,7 +1,7 @@
 package Models.Server;
 
+import Models.Client;
 import Models.Room;
-import Services.ChatService.ChatClientService;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ public class ServerState {
     private ServerData coordinatorServerData;
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Long, ChatClientService> currentClientThreadsMap = new ConcurrentHashMap<>(); // List of the current client threads connected to server
+    public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();
     private final Logger logger = Logger.getLogger(ServerState.class);
 //    private final ConcurrentMap<String, ServerData> higherPriorityServers = new ConcurrentHashMap<>();
 //    private final ConcurrentMap<String, ServerData> lowerPriorityServers = new ConcurrentHashMap<>();
@@ -100,11 +100,13 @@ public class ServerState {
 //        return currentServerData.equals(coordinatorServerData);
 //    }
 
-    public void addNewClientThread(ChatClientService clientThread) {
-        currentClientThreadsMap.put(clientThread.getId(), clientThread);
+    public void addNewRoom(Room room) {
+        roomList.put(room.getRoomID(), room);
+        logger.info("Main Hall Created");
     }
 
-    public ChatClientService getClientThread(long threadID) {
-        return currentClientThreadsMap.get(threadID);
+    public void addClientToRoom(String roomID, Client client){
+        roomList.get(roomID).addClient(client);
     }
+
 }
