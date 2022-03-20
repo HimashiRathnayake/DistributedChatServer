@@ -63,16 +63,25 @@ public class ChatClientService extends Thread {
                         send(movejoinResponses.get("client-only"));
                         List<ChatClientService> clientThreads_movejoin = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         for (ChatClientService service: clientThreads_movejoin){
-                            sendNew(service.clientSocket, movejoinResponses.get("broadcast"));
+                            sendBroadcast(service.clientSocket, movejoinResponses.get("broadcast"));
                         }
                         break;
                     case "deleteroom":
                         logger.info("Received message type deleteroom");
-                        new DeleteRoomHandler(this.responseHandler).deleteRoom((String) message.get("roomid"), this.client);
+                        Map<String, JSONObject> deleteRoomResponses = new DeleteRoomHandler(this.responseHandler).deleteRoom((String) message.get("roomid"), this.client);
+                        if (deleteRoomResponses.containsKey("accept")) {
+                            List<ChatClientService> clientThreadsDelete = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                            for (ChatClientService service : clientThreadsDelete) {
+                                sendBroadcast(service.clientSocket, deleteRoomResponses.get("broadcast"));
+                            }
+                            send(deleteRoomResponses.get("approve"));
+                        } else {
+                            send(deleteRoomResponses.get("reject"));
+                        }
                         break;
                     case "quit":
                         logger.info("Received message type quit");
-//                        new QuitHandler().handleQuit(this.client);
+                        // new QuitHandler().handleQuit(this.client);
                         break;
                     case "newidentity":
                         logger.info("Received message type newidentity");

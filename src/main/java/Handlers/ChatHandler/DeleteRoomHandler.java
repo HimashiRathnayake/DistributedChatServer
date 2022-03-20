@@ -6,6 +6,9 @@ import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 public class DeleteRoomHandler {
@@ -16,17 +19,31 @@ public class DeleteRoomHandler {
         this.responseHandler = responseHandler;
     }
 
-    public JSONObject deleteRoom(String roomID, Client client){
+    public Map<String, JSONObject> deleteRoom(String roomID, Client client){
+        Map<String, JSONObject> responses = new HashMap<>();
         ConcurrentMap<String, Room> roomList = ServerState.getServerStateInstance().getRoomList();
         if(roomList.containsKey(roomID)){
             Room deleteRoom = roomList.get(roomID);
             if(deleteRoom.getOwner().equals(client.getIdentity())){
                 //delete
+                ArrayList<Client> deleteRoomClients = deleteRoom.getClients();
+                ServerState.getServerStateInstance().roomList.remove(deleteRoom.getRoomID());
+                // TODO: broadcast delete to other servers
+                // JSONObject broadcastDelete = this.responseHandler.broadcastServersDeleteRoomResponse(System.getProperty("serverID"), roomID);
+                // Response to broadcast move to MainHall
+                JSONObject broadcastRoomChange = this.responseHandler
+                        .broadCastRoomChange(client.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID"));
+                // Response to approve
+                JSONObject approveResponse = this.responseHandler.deleteRoomResponse(roomID, "true");
+                responses.put("broadcastRoomChange", broadcastRoomChange);
+                responses.put("approve", approveResponse);
+                return responses;
             }
         }
-        JSONObject deleteRoomResponse = responseHandler.deleteRoomResponse(roomID, false);
-        //reject
-        return deleteRoomResponse;
+        // Response to reject
+        JSONObject rejectResponse = this.responseHandler.deleteRoomResponse(roomID, "false");
+        responses.put("reject", rejectResponse);
+        return responses;
 
     }
 }

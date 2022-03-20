@@ -55,7 +55,7 @@ public class ResponseHandler {
         response.put("content", content);
         return response;
     }
-    //            {"type" : "serverchange", "approved" : "true", "serverid" : "s2"}
+    // {"type" : "serverchange", "approved" : "true", "serverid" : "s2"}
     @SuppressWarnings("unchecked")
     public JSONObject serverChangedResponse(){
         JSONObject response= new JSONObject();
@@ -75,9 +75,9 @@ public class ResponseHandler {
         return newIdentity;
     }
 
-//    {"type" : "deleteroom", "roomid" : "jokes", "approved" : "false"}
+    // {"type" : "deleteroom", "roomid" : "jokes", "approved" : "false"}
     @SuppressWarnings("unchecked")
-    public JSONObject deleteRoomResponse(String roomID,boolean isApprove){
+    public JSONObject deleteRoomResponse(String roomID, String isApprove){
         JSONObject response = new JSONObject();
         response.put("type" , "deleteroom");
         response.put("roomid", roomID);
@@ -85,7 +85,7 @@ public class ResponseHandler {
         return  response;
     }
 
-//    {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}
+    // {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}
     @SuppressWarnings("unchecked")
     public JSONObject broadcastServersDeleteRoomResponse(String serverID, String roomID){
         JSONObject response = new JSONObject();
