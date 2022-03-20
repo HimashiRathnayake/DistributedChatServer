@@ -25,12 +25,13 @@ public class DeleteRoomHandler {
         if(roomList.containsKey(roomID)){
             Room deleteRoom = roomList.get(roomID);
             if(deleteRoom.getOwner().equals(client.getIdentity())){
-                //delete
                 ArrayList<Client> deleteRoomClients = deleteRoom.getClients();
+                //delete room
                 ServerState.getServerStateInstance().roomList.remove(deleteRoom.getRoomID());
                 // TODO: broadcast delete to other servers
                 // JSONObject broadcastDelete = this.responseHandler.broadcastServersDeleteRoomResponse(System.getProperty("serverID"), roomID);
-                // Response to broadcast move to MainHall
+                // Move to MainHall
+                ServerState.getServerStateInstance().roomList.get(deleteRoom.getRoomID()).addClientList(deleteRoomClients);
                 JSONObject broadcastRoomChange = this.responseHandler
                         .broadCastRoomChange(client.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID"));
                 // Response to approve

@@ -81,7 +81,11 @@ public class ChatClientService extends Thread {
                         break;
                     case "quit":
                         logger.info("Received message type quit");
-                        // new QuitHandler().handleQuit(this.client);
+                        Map<String, JSONObject> quitResponses = new QuitHandler(this.responseHandler).handleQuit(this.client);
+                        send(quitResponses.get("reply"));
+                        // server closes the connection
+                        ServerState.getServerStateInstance().clientServices.remove(this.client.getIdentity());
+                        this.join();
                         break;
                     case "newidentity":
                         logger.info("Received message type newidentity");
@@ -103,7 +107,7 @@ public class ChatClientService extends Thread {
                         }
                         break;
                 }
-            } catch (IOException | ParseException e) {
+            } catch (IOException | ParseException | InterruptedException e) {
                 logger.error("Exception occurred" + e.getMessage());
                 e.printStackTrace();
             }

@@ -116,9 +116,24 @@ public class ServerState {
         roomList.get(roomID).addClient(client);
     }
 
-    public void deleteRoomByOwner(String clientID) {
+    public Room getOwningRoom(String clientID) {
+        for (Room room: roomList.values()){
+            if (Objects.equals(room.getOwner(), clientID)){
+                return room;
+            }
+        }
+        return null;
+    }
 
-        logger.info("Main Hall Created");
+    public String removeClientFromRoom(Client client) {
+        for (Room room: roomList.values()){
+            if (room.getClients().contains(client)){
+                String formerRoom = room.getRoomID();
+                room.removeClient(client.getIdentity());
+                return formerRoom;
+            }
+        }
+        return null;
     }
 
     // get all client threads in a room associated with a given client
