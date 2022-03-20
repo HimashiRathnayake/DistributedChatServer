@@ -46,8 +46,8 @@ public class NewIdentityHandler {
         return response;
     }
 
-    public ArrayList<JSONObject> addNewIdentity(String identity){
-        Client client = new Client();
+    public ArrayList<JSONObject> addNewIdentity(Client client, String identity){
+
         ArrayList<JSONObject> responses = new ArrayList<>();
         if (checkIdentityUnique(identity) && checkIdentityRules(identity)){
             client.setIdentity(identity);

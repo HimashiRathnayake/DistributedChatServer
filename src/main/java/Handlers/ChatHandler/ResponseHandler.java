@@ -24,4 +24,14 @@ public class ResponseHandler {
         return newIdentity;
     }
 
+    // {"type" : "message", "identity" : "Adel", "content" : "Hi there!"}
+    @SuppressWarnings("unchecked")
+    public JSONObject broadCastMessage(String clientID, String content){
+        JSONObject response = new JSONObject();
+        response.put("type", "message");
+        response.put("identity", clientID);
+        response.put("content", content);
+        return response;
+    }
+
 }

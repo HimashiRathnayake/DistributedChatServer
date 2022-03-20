@@ -1,7 +1,9 @@
 package Services.ChatService;
 
+import Handlers.ChatHandler.MessageHandler;
 import Handlers.ChatHandler.NewIdentityHandler;
 import Handlers.ChatHandler.ResponseHandler;
+import Models.Client;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -16,6 +18,7 @@ public class ChatClientService extends Thread {
     private final Logger logger = Logger.getLogger(ChatClientService.class);
     private final Socket clientSocket;
     private final JSONParser parser = new JSONParser();
+    private Client client;
     private final ResponseHandler responseHandler = new ResponseHandler();
 
     public ChatClientService(Socket clientSocket){
@@ -65,7 +68,8 @@ public class ChatClientService extends Thread {
                     case "newidentity":
                         logger.info("Received message type newidentity");
                         // TODO: Send to coordinator for approving new identity
-                        ArrayList<JSONObject> responses = new NewIdentityHandler(this.responseHandler).addNewIdentity((String) message.get("identity"));
+                        this.client = new Client();
+                        ArrayList<JSONObject> responses = new NewIdentityHandler(this.responseHandler).addNewIdentity(client, (String) message.get("identity"));
                         for (JSONObject response: responses){
                             send(response);
                         }
