@@ -90,6 +90,9 @@ public class ChatClientService extends Thread {
                                 }
                             }
                         }
+                        for (JSONObject deleteResponse : deleteRoomResponses.get("broadcast")){
+                            sendBroadcast(this.clientSocket, deleteResponse);
+                        }
                         send(deleteRoomResponses.get("client-only").get(0));
                         break;
                     case "quit":
