@@ -1,6 +1,7 @@
 package Services.ChatService;
 
 import Handlers.ChatHandler.MessageHandler;
+import Handlers.ChatHandler.MoveJoinHandler;
 import Handlers.ChatHandler.NewIdentityHandler;
 import Handlers.ChatHandler.ResponseHandler;
 import Models.Client;
@@ -57,7 +58,8 @@ public class ChatClientService extends Thread {
                         break;
                     case "movejoin":
                         logger.info("Received message type movejoin");
-
+                        JSONObject movejoinResponse = new MoveJoinHandler().movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
+                        send(movejoinResponse);
                         break;
                     case "deleteroom":
                         logger.info("Received message type deleteroom");

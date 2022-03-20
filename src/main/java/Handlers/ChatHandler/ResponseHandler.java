@@ -33,5 +33,8 @@ public class ResponseHandler {
         response.put("content", content);
         return response;
     }
+    //            {"type" : "serverchange", "approved" : "true", "serverid" : "s2"}
+    public JSONObject moveJoinRoomChange(){
 
+    }
 }
