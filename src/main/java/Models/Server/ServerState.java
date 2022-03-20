@@ -113,13 +113,12 @@ public class ServerState {
     }
 
     // get all client threads in a room associated with a given client
-    public List<ChatClientService> getClientServicesInRoomByClient(Client client){
+    public List<ChatClientService> getClientServicesInRoomByClient(Client sender){
         for (Room room: roomList.values()){
-            if (room.getClients().contains(client)){
-                List<String> roomClients = room.getClients().stream().map(Client::getIdentity).toList();
-                return roomClients.stream()
-                                .map(clientServices::get)
-                                .filter(Objects::nonNull).toList();
+            if (room.getClients().contains(sender)){
+                List<String> roomClients = room.getClients().stream().map(Client::getIdentity)
+                        .filter(c -> !Objects.equals(c, sender.getIdentity())).toList();
+                return roomClients.stream().map(clientServices::get).filter(Objects::nonNull).toList();
             }
         }
         return null;
