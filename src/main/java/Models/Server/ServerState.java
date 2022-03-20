@@ -120,24 +120,21 @@ public class ServerState {
         roomList.get(roomID).removeClient(client);
     }
 
-    // get all client threads in a room associated with a given client
-    public List<ChatClientService> getClientServicesInRoomByClient(Client client){
-
-    public Room getOwningRoom(String clientID) {
+    public String removeClientFromRoomWithFormerRoom(Client client) {
         for (Room room: roomList.values()){
-            if (Objects.equals(room.getOwner(), clientID)){
-                return room;
+            if (room.getClients().contains(client)){
+                String formerRoom = room.getRoomID();
+                room.removeClientByClienID(client.getIdentity());
+                return formerRoom;
             }
         }
         return null;
     }
 
-    public String removeClientFromRoom1(Client client) {
+    public Room getOwningRoom(String clientID) {
         for (Room room: roomList.values()){
-            if (room.getClients().contains(client)){
-                String formerRoom = room.getRoomID();
-                room.removeClient(client.getIdentity());
-                return formerRoom;
+            if (Objects.equals(room.getOwner(), clientID)){
+                return room;
             }
         }
         return null;

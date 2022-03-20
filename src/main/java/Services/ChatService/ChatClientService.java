@@ -2,8 +2,8 @@ package Services.ChatService;
 
 import Handlers.ChatHandler.*;
 import Models.Client;
+import Models.Server.ServerState;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;

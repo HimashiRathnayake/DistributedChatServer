@@ -23,7 +23,7 @@ public class QuitHandler {
         ServerState.getServerStateInstance().clients.remove(clientID); // remove the client from the client list
         Room deleteRoom = ServerState.getServerStateInstance().getOwningRoom(clientID);
         if (deleteRoom == null){
-            String formerRoom = ServerState.getServerStateInstance().removeClientFromRoom(client); // delete client from room
+            String formerRoom = ServerState.getServerStateInstance().removeClientFromRoomWithFormerRoom(client); // delete client from room
             responses.put("reply", this.responseHandler.broadCastRoomChange(clientID, formerRoom, ""));
         } else {
 //            ArrayList<Client> deleteRoomClients = deleteRoom.getClients();
