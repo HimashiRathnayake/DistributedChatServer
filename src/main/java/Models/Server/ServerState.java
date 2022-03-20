@@ -55,6 +55,10 @@ public class ServerState {
         return coordinatorServerData;
     }
 
+    public synchronized ConcurrentMap<String, Room> getRoomList(){
+        return roomList;
+    }
+
     public void setCoordinator(ServerData coordinator) {
         this.coordinatorServerData = coordinator;
         logger.info("New coordinator is set");
