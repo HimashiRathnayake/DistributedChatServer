@@ -11,9 +11,7 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ChatClientService extends Thread {
     private final Logger logger = Logger.getLogger(ChatClientService.class);
@@ -21,18 +19,18 @@ public class ChatClientService extends Thread {
     private final JSONParser parser = new JSONParser();
     private Client client;
     private final ResponseHandler responseHandler = new ResponseHandler();
-    private boolean blinker = true;
+    private boolean running = true;
 
     public ChatClientService(Socket clientSocket){
         this.clientSocket = clientSocket;
     }
 
     public void stopThread() {
-        blinker = false;
+        running = false;
     }
 
     public void run() {
-        while (blinker){
+        while (running){
             try {
                 assert clientSocket != null;
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
@@ -92,13 +90,25 @@ public class ChatClientService extends Thread {
                                 }
                             }
                         }
-
                         send(deleteRoomResponses.get("client-only").get(0));
                         break;
                     case "quit":
                         logger.info("Received message type quit");
-                        Map<String, JSONObject> quitResponses = new QuitHandler(this.responseHandler).handleQuit(this.client);
-                        send(quitResponses.get("reply"));
+                        List<ChatClientService> clientThreads_quit = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                        Map<String, ArrayList<JSONObject>> quitResponses = new QuitHandler(this.responseHandler).handleQuit(this.client);
+                        if (quitResponses.containsKey("broadcast")) {
+                            for (JSONObject response : quitResponses.get("broadcast")) {
+                                for (ChatClientService service : clientThreads_quit) {
+                                    sendBroadcast(service.clientSocket, response);
+                                }
+                            }
+                        }
+                        if (quitResponses.containsKey("reply")){
+                            send(quitResponses.get("reply").get(0));
+                        }
+                        if (quitResponses.containsKey("client-only")){
+                            send(quitResponses.get("client-only").get(0));
+                        }
                         // server closes the connection
                         ServerState.getServerStateInstance().clientServices.remove(this.client.getIdentity());
                         this.stopThread();

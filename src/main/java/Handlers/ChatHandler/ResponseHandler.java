@@ -6,7 +6,6 @@ import java.util.ArrayList;
 
 public class ResponseHandler {
 
-
     // {type" : "roomlist", "rooms" : ["MainHall-s1", "MainHall-s2", "jokes"]}
     @SuppressWarnings("unchecked")
     public JSONObject sendRoomList(ArrayList<String> rooms){
@@ -56,6 +55,7 @@ public class ResponseHandler {
         response.put("content", content);
         return response;
     }
+
     // {"type" : "serverchange", "approved" : "true", "serverid" : "s2"}
     @SuppressWarnings("unchecked")
     public JSONObject serverChangedResponse(){
@@ -65,6 +65,7 @@ public class ResponseHandler {
         response.put("serverid", System.getProperty("serverID"));
         return  response;
     }
+
     // {"type" : "roomchange", "identity" : "Adel", "former" : "", "roomid" : "MainHall-s1"}
     @SuppressWarnings("unchecked")
     public JSONObject broadCastRoomChange(String clientID, String formerID, String roomID){
