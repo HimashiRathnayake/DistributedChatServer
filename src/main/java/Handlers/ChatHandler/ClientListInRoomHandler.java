@@ -1,6 +1,11 @@
 package Handlers.ChatHandler;
 
+import Models.Client;
+import Models.Room;
+import Models.Server.ServerState;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 
 public class ClientListInRoomHandler {
@@ -10,33 +15,29 @@ public class ClientListInRoomHandler {
     public String getClientsRoomID(String identity){
 
         String roomid = null;
-//        for (int i = 0; i<roomsYML.getRooms().size(); i++){
-//            if (roomsYML.getRooms().get(i).getClients().contains(identity)){
-//                roomid = roomsYML.getRooms().get(i).getRoomID();
-//            }
-//        }
+        Collection<Room> roomsList = ServerState.getServerStateInstance().roomList.values();
+        for (Room room : roomsList) {
+            for (int j = 0; j < room.getClients().size(); j++) {
+                if (Objects.equals(room.getClients().get(j).getIdentity(), identity)) {
+                    roomid = room.getRoomID();
+                    break;
+                }
+            }
+        }
         return roomid;
     }
 
-    public String getRoomOwner(String room){
+    public String getRoomOwner(String roomid){
 
-        String owner = null;
-//        for (int i = 0; i<roomsYML.getRooms().size(); i++){
-//            if (Objects.equals(roomsYML.getRooms().get(i).getRoomID(), room)){
-//                owner = roomsYML.getRooms().get(i).getOwner();
-//            }
-//        }
-        return owner;
+        return ServerState.getServerStateInstance().roomList.get(roomid).getOwner();
     }
 
-    public ArrayList<String> getClientsInRoom(String room_id){
-
+    public ArrayList<String> getClientsInRoom(String roomid){
         ArrayList<String> clients = new ArrayList<>();
-//        for (int i = 0; i<roomsYML.getRooms().size(); i++){
-//            if (Objects.equals(roomsYML.getRooms().get(i).getRoomID(), room_id)){
-//                clients = roomsYML.getRooms().get(i).getClients();
-//            }
-//        }
+        ArrayList<Client> clientsList = ServerState.getServerStateInstance().roomList.get(roomid).getClients();
+        for (Client client : clientsList){
+            clients.add(client.getIdentity());
+        }
         return clients;
     }
 }

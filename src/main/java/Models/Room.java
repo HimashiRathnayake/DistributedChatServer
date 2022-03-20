@@ -44,6 +44,10 @@ public class Room {
         this.clients.add(client);
     }
 
+    public void removeClient(Client client){
+        this.clients.remove(client);
+    }
+
     public String getOwner() {
         return owner;
     }

@@ -16,7 +16,7 @@ public class ServerState {
     private ServerData currentServerData;
     private ServerData coordinatorServerData;
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, ChatClientService> clientServices = new ConcurrentHashMap<>();
     private final Logger logger = Logger.getLogger(ServerState.class);
@@ -110,6 +110,10 @@ public class ServerState {
 
     public void addClientToRoom(String roomID, Client client){
         roomList.get(roomID).addClient(client);
+    }
+
+    public void removeClientFromRoom(String roomID, Client client){
+        roomList.get(roomID).removeClient(client);
     }
 
     // get all client threads in a room associated with a given client

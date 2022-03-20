@@ -1,10 +1,7 @@
 package Services.ChatService;
 
-import Handlers.ChatHandler.MessageHandler;
-import Handlers.ChatHandler.NewIdentityHandler;
-import Handlers.ChatHandler.ResponseHandler;
+import Handlers.ChatHandler.*;
 import Models.Client;
-import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -14,7 +11,6 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.List;
 
 public class ChatClientService extends Thread {
     private final Logger logger = Logger.getLogger(ChatClientService.class);
@@ -44,9 +40,17 @@ public class ChatClientService extends Thread {
                         break;
                     case "createroom":
                         logger.info("Received message type createroom");
+                        ArrayList<JSONObject> roomResponses = new CreateRoomHandler(this.responseHandler).createRoom(client, (String) message.get("roomid"));
+                        for (JSONObject response : roomResponses) {
+                            send(response);
+                        }
                         break;
                     case "joinroom":
                         logger.info("Received message type joinroom");
+                        ArrayList<JSONObject> joinResponses = new JoinRoomHandler(this.responseHandler).joinRoom(client, (String) message.get("roomid"));
+                        for (JSONObject response : joinResponses) {
+                            send(response);
+                        }
                         break;
                     case "movejoin":
                         logger.info("Received message type movejoin");
