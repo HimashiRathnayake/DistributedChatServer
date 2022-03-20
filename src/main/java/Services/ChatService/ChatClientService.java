@@ -34,12 +34,22 @@ public class ChatClientService extends Thread {
                 JSONObject message = (JSONObject) parser.parse(in.readLine());
                 String type = (String) message.get("type");
                 System.out.println(message);
+
                 switch(type){
                     case "list":
                         logger.info("Received message type list");
+                        //TODO: get room list from other servers
+                        JSONObject roomListResponse = new ResponseHandler().sendRoomList(new RoomListHandler(responseHandler).getRoomList());
+                        send(roomListResponse);
                         break;
                     case "who":
                         logger.info("Received message type who");
+                        ClientListInRoomHandler clientListInRoomHandler = new ClientListInRoomHandler();
+                        String roomID = clientListInRoomHandler.getClientsRoomID(client.getIdentity());
+                        ArrayList<String> identities = clientListInRoomHandler.getClientsInRoom(roomID);
+                        String owner = clientListInRoomHandler.getRoomOwner(roomID);
+                        JSONObject clientInRoomListResponse = new ResponseHandler().sendClientListInChatRoom(roomID, identities, owner);
+                        send(clientInRoomListResponse);
                         break;
                     case "createroom":
                         logger.info("Received message type createroom");
@@ -62,6 +72,7 @@ public class ChatClientService extends Thread {
                         break;
                     case "quit":
                         logger.info("Received message type quit");
+//                        new QuitHandler().handleQuit(this.client);
                         break;
                     case "newidentity":
                         logger.info("Received message type newidentity");
@@ -79,7 +90,7 @@ public class ChatClientService extends Thread {
                         List<ChatClientService> clientThreads = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         JSONObject messageResponse = new MessageHandler(this.responseHandler).handleMessage(clientID, content);
                         for (ChatClientService service: clientThreads){
-                            sendNew(service.clientSocket, messageResponse);
+                            sendBroadcast(service.clientSocket, messageResponse);
                         }
                         break;
                 }
@@ -97,7 +108,7 @@ public class ChatClientService extends Thread {
         out.flush();
     }
 
-    public void sendNew(Socket socket, JSONObject obj) throws IOException {
+    public void sendBroadcast(Socket socket, JSONObject obj) throws IOException {
         OutputStream out = socket.getOutputStream();
         out.write((obj.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
         out.flush();
