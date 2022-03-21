@@ -24,11 +24,16 @@ public class MessageTransferService {
         }
     }
 
-    public static void sendToServers(JSONObject message, String host, int port) throws IOException {
-        Socket socket = new Socket(host, port);
-        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-        dataOutputStream.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
-        dataOutputStream.flush();
+    public static void sendToServers(JSONObject message, String host, int port) {
+        try{
+            Socket socket = new Socket(host, port);
+            DataOutputStream dataOutputStream = null;
+            dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
+            dataOutputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

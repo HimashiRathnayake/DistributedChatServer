@@ -1,5 +1,6 @@
 import Models.Client;
 import Models.Room;
+import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ConfigFileReaderService;
@@ -37,6 +38,9 @@ public class Server {
 
             Room mainHall = new Room("MainHall-"+serverID, serverID, "", new ArrayList<Client>());
             ServerState.getServerStateInstance().addNewRoom(mainHall);
+
+            ServerData leader = new ServerData("s1", "localhost", 4444, 5555);
+            ServerState.getServerStateInstance().setLeaderServerData(leader);
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
 

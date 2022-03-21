@@ -122,7 +122,6 @@ public class ChatClientService extends Thread {
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");
-                        // TODO: Send to coordinator for approving new identity
                         this.client = new Client();
                         Map<String, JSONObject> responses = new NewIdentityHandler(this.responseHandler).addNewIdentity(this, client, (String) message.get("identity"));
                         List<ChatClientService> clientThreads_newId = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);

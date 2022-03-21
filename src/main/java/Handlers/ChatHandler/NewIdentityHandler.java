@@ -1,19 +1,25 @@
 package Handlers.ChatHandler;
 
+import Handlers.CoordinationHandler.RequestHandler;
 import Models.Client;
+import Models.Server.LeaderState;
+import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
+import Services.MessageTransferService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NewIdentityHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
-    private final ResponseHandler responseHandler;
+    private final ResponseHandler clientResponseHandler;
+    private final RequestHandler serverRequestHandler = new RequestHandler();
 
     public NewIdentityHandler(ResponseHandler responseHandler){
-        this.responseHandler = responseHandler;
+        this.clientResponseHandler = responseHandler;
     }
 
     public boolean checkIdentityRules(String identity){
@@ -24,15 +30,22 @@ public class NewIdentityHandler {
         return isIdentityGood;
     }
 
-    public boolean checkIdentityUnique(String identity){
-
+    public boolean checkIdentityUnique(String identity) {
         boolean isIdentityUnique = true;
         // TODO: Check identity from all servers.
-        for (Iterator<String> it = ServerState.getServerStateInstance().clients.keys().asIterator(); it.hasNext(); ) {
-            String client = it.next();
-            if (Objects.equals(client, identity)){
-                isIdentityUnique = false;
+        ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
+        ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
+        if (Objects.equals(currentServer.getServerID(), leaderServer.getServerID())){
+            ConcurrentHashMap<String, Client> clients = LeaderState.getInstance().getGlobalClients();
+            for (Iterator<String> it = clients.keys().asIterator(); it.hasNext(); ) {
+                String client = it.next();
+                if (Objects.equals(client, identity)){
+                    isIdentityUnique = false;
+                }
             }
+        } else {
+            JSONObject request = serverRequestHandler.sendNewIdentityResponse(identity);
+            MessageTransferService.sendToServers(request, leaderServer.getServerAddress(), leaderServer.getCoordinationPort());
         }
         return isIdentityUnique;
     }
@@ -41,7 +54,7 @@ public class NewIdentityHandler {
         JSONObject response;
         String roomID = "MainHall-" + System.getProperty("serverID");
         ServerState.getServerStateInstance().addClientToRoom(roomID, client);
-        response = responseHandler.moveToRoomResponse(client.getIdentity(), "", roomID);
+        response = clientResponseHandler.moveToRoomResponse(client.getIdentity(), "", roomID);
         return response;
     }
 
@@ -55,11 +68,11 @@ public class NewIdentityHandler {
             ServerState.getServerStateInstance().clientServices.put(identity, service);
             ServerState.getServerStateInstance().clients.put(identity, client);
             logger.info("New identity creation accepted");
-            responses.put("client-only", responseHandler.sendNewIdentityResponse("true"));
+            responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("true"));
             responses.put("broadcast", moveToMainHall(client));
         } else {
             logger.info("New identity creation rejected");
-            responses.put("client-only", responseHandler.sendNewIdentityResponse("false"));
+            responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("false"));
         }
         return responses;
     }

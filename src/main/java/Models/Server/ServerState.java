@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentMap;
 public class ServerState {
     private static ServerState serverState;
     private ServerData currentServerData;
-    private ServerData coordinatorServerData;
+    private ServerData leaderServerData;
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();
@@ -51,17 +51,17 @@ public class ServerState {
         return new ArrayList<>(serversList.values());
     }
 
-    public ServerData getCoordinator() {
-        return coordinatorServerData;
+    public ServerData getLeaderServerData() {
+        return leaderServerData;
     }
 
     public synchronized ConcurrentMap<String, Room> getRoomList(){
         return roomList;
     }
 
-    public void setCoordinator(ServerData coordinator) {
-        this.coordinatorServerData = coordinator;
-        logger.info("New coordinator is set");
+    public void setLeaderServerData(ServerData leaderServerData) {
+        this.leaderServerData = leaderServerData;
+        logger.info("New leader is set");
     }
 
 //    public synchronized List<ServerData> getHigherServerInfo() {
