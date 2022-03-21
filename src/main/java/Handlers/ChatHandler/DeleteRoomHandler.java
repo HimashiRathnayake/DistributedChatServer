@@ -33,7 +33,6 @@ public class DeleteRoomHandler {
                 ArrayList<Client> deleteRoomClients = deleteRoom.getClients();
                 //delete room
                 ServerState.getServerStateInstance().roomList.remove(deleteRoom.getRoomID());
-                // TODO: broadcast delete to other servers  {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}
                 JSONObject serverBroadcastRespond = serverResponseHandler.deleteRoomServerRespond(System.getProperty("serverID"), roomID);
                 broadcastServerResponse.add(serverBroadcastRespond);
                 responses.put("broadcastServers", broadcastServerResponse);
