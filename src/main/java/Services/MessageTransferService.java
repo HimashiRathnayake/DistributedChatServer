@@ -46,7 +46,7 @@ public class MessageTransferService {
         }
     }
 
-    public void sendToServersBroadcast(JSONObject message) {
+    public static void sendToServersBroadcast(JSONObject message) {
         ConcurrentMap<String, ServerData> serverList = ServerState.getServerStateInstance().getServersList();
         ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
         for (ConcurrentMap.Entry<String, ServerData> entry : serverList.entrySet()) {
