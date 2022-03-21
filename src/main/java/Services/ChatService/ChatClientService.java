@@ -112,8 +112,11 @@ public class ChatClientService extends Thread {
                         logger.info("Received message type quit");
                         List<ChatClientService> clientThreads_quit = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         Map<String, ArrayList<JSONObject>> quitResponses = new QuitHandler(this.clientResponseHandler).handleQuit(this.client);
-                        if (quitResponses.containsKey("broadcast")) {
-                            for (JSONObject response : quitResponses.get("broadcast")) {
+                        if (quitResponses.containsKey("broadcastServers")){
+                            MessageTransferService.sendToServersBroadcast(quitResponses.get("broadcastServers").get(0));
+                        }
+                        if (quitResponses.containsKey("broadcastClients")) {
+                            for (JSONObject response : quitResponses.get("broadcastClients")) {
                                 MessageTransferService.sendBroadcast(clientThreads_quit, response);
                             }
                         }

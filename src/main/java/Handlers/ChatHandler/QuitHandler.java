@@ -1,5 +1,6 @@
 package Handlers.ChatHandler;
 
+import Handlers.CoordinationHandler.ResponseHandler;
 import Models.Client;
 import Models.Room;
 import Models.Server.ServerState;
@@ -13,6 +14,7 @@ import java.util.Map;
 public class QuitHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
     private final ClientResponseHandler clientResponseHandler;
+    private final ResponseHandler serverResponseHandler = new ResponseHandler();
 
     public QuitHandler(ClientResponseHandler clientResponseHandler) {
         this.clientResponseHandler = clientResponseHandler;
@@ -27,6 +29,7 @@ public class QuitHandler {
         ArrayList<JSONObject> broadcastResponse = new ArrayList<>();
         ArrayList<JSONObject> clientOnlyResponse = new ArrayList<>();
         ArrayList<JSONObject> replyResponse = new ArrayList<>();
+        ArrayList<JSONObject> broadcastServerResponse = new ArrayList<>();
 
         if (deleteRoom == null){
             String formerRoom = ServerState.getServerStateInstance().removeClientFromRoomWithFormerRoom(client); // delete client from room
@@ -37,8 +40,9 @@ public class QuitHandler {
             deleteRoomClients.remove(client);
             //delete room
             ServerState.getServerStateInstance().roomList.remove(deleteRoom.getRoomID());
-            // TODO: broadcast delete to other servers
-            // JSONObject broadcastDelete = this.responseHandler.broadcastServersDeleteRoomResponse(System.getProperty("serverID"), roomID);
+            JSONObject serverBroadcastResponse = serverResponseHandler.deleteRoomServerRespond(System.getProperty("serverID"), deleteRoom.getRoomID());
+            broadcastServerResponse.add(serverBroadcastResponse);
+            responses.put("broadcastServers", broadcastServerResponse);
             // Move to MainHall
             ServerState.getServerStateInstance().roomList.get("MainHall-"+System.getProperty("serverID")).addClientList(deleteRoomClients);
             for(Client movingClient: deleteRoomClients){
@@ -49,7 +53,7 @@ public class QuitHandler {
             replyResponse.add(this.clientResponseHandler
                     .broadCastRoomChange(client.getIdentity(), "deletedRoom", ""));
             responses.put("reply", replyResponse);
-            responses.put("broadcast", broadcastResponse);
+            responses.put("broadcastClients", broadcastResponse);
         }
         return responses;
     }
