@@ -11,11 +11,11 @@ public class JoinRoomHandler {
 
     ClientListInRoomHandler clientListInRoomHandler= new ClientListInRoomHandler();
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
-    private final ResponseHandler responseHandler;
+    private final ClientResponseHandler clientResponseHandler;
     String currentChatRoom = "";
 
-    public JoinRoomHandler(ResponseHandler responseHandler){
-        this.responseHandler = responseHandler;
+    public JoinRoomHandler(ClientResponseHandler clientResponseHandler){
+        this.clientResponseHandler = clientResponseHandler;
     }
 
     public boolean checkRoomIdExist(String identity){
@@ -52,7 +52,7 @@ public class JoinRoomHandler {
         JSONObject response;
         ServerState.getServerStateInstance().addClientToRoom(roomid, client);
         ServerState.getServerStateInstance().removeClientFromRoom(former, client);
-        response = responseHandler.moveToRoomResponse(client.getIdentity(), currentChatRoom, roomid);
+        response = clientResponseHandler.moveToRoomResponse(client.getIdentity(), currentChatRoom, roomid);
         return response;
     }
 
@@ -83,7 +83,7 @@ public class JoinRoomHandler {
 
         } else {
             logger.info("Join room rejected");
-            JSONObject roomChangedResponse = this.responseHandler.broadCastRoomChange(client.getIdentity(),roomid,roomid);
+            JSONObject roomChangedResponse = this.clientResponseHandler.broadCastRoomChange(client.getIdentity(),roomid,roomid);
             responses.put("client-only",roomChangedResponse);
         }
         return responses;

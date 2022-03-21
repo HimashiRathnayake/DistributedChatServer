@@ -4,7 +4,7 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 
-public class ResponseHandler {
+public class ClientResponseHandler {
 
     // {type" : "roomlist", "rooms" : ["MainHall-s1", "MainHall-s2", "jokes"]}
     @SuppressWarnings("unchecked")

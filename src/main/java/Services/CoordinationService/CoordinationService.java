@@ -1,8 +1,10 @@
 package Services.CoordinationService;
 
-import Handlers.ChatHandler.NewIdentityHandler;
+import Handlers.ChatHandler.ClientResponseHandler;
+import Handlers.CoordinationHandler.NewIdentityHandler;
 import Handlers.CoordinationHandler.ResponseHandler;
 import Models.Client;
+import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
 import Services.MessageTransferService;
@@ -17,14 +19,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-public class CoordinationService extends Thread{
+public class CoordinationService extends Thread {
     private final Socket coordinationSocket;
     Logger logger = Logger.getLogger(CoordinationService.class);
     private final JSONParser parser = new JSONParser();
     private boolean running = true;
     private final ResponseHandler serverResponseHandler = new ResponseHandler();
 
-    public CoordinationService(Socket coordinationSocket){
+    public CoordinationService(Socket coordinationSocket) {
         this.coordinationSocket = coordinationSocket;
     }
 
@@ -33,7 +35,7 @@ public class CoordinationService extends Thread{
     }
 
     public void run() {
-        while (running){
+        while (running) {
             try {
                 assert coordinationSocket != null;
                 BufferedReader in = new BufferedReader(new InputStreamReader(coordinationSocket.getInputStream(), StandardCharsets.UTF_8));
@@ -55,14 +57,24 @@ public class CoordinationService extends Thread{
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");
-//                        Client client = new Client();
-//                        Map<String, JSONObject> responses = new NewIdentityHandler(this.serverResponseHandler).addNewIdentity(this, client, (String) message.get("identity"));
-//                        List<ChatClientService> clientThreads_newId = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-//                        MessageTransferService.send(this.clientSocket, responses.get("client-only"));
-//                        MessageTransferService.send(this.clientSocket, responses.get("broadcast"));
-//                        if (responses.containsKey("broadcast")) {
-//                            MessageTransferService.sendBroadcast(clientThreads_newId, responses.get("broadcast"));
-//                        }
+                        Client client = new Client();
+                        JSONObject response = new NewIdentityHandler().coordinatorNewClientIdentity(client, (String) message.get("identity"), (String) message.get("serverid"));
+                        ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
+                        new MessageTransferService().sendToServers(response ,requestServer.getServerID(),requestServer.getCoordinationPort());
+                    }
+                    case "leadernewidentity" -> {
+                        logger.info("Received message type leadernewidentity");
+                        Client client = new Client();
+                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get((String) message.get("identity"));
+                        Map<String, JSONObject> responses = new NewIdentityHandler().leaderApprovedNewClientIdentity((String) message.get("approved"), client, (String) message.get("identity"));
+                        if (!responses.containsKey("askedFromLeader")) {
+                            List<ChatClientService> clientThreads_newId = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                            new MessageTransferService().send(chatClientService.getClientSocket(), responses.get("client-only"));
+                            new MessageTransferService().send(chatClientService.clientSocket, responses.get("broadcast"));
+                            if (responses.containsKey("broadcast")) {
+                                new MessageTransferService().sendBroadcast(clientThreads_newId, responses.get("broadcast"));
+                            }
+                        }
                     }
                 }
                 this.stopThread(); // Finally, stop the thread as there is no need for these connections to remain active throughout the lifetime of the system

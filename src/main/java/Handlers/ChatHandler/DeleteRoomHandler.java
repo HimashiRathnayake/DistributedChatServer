@@ -13,10 +13,10 @@ import java.util.concurrent.ConcurrentMap;
 
 public class DeleteRoomHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
-    private final ResponseHandler responseHandler;
+    private final ClientResponseHandler clientResponseHandler;
 
-    public DeleteRoomHandler(ResponseHandler responseHandler){
-        this.responseHandler = responseHandler;
+    public DeleteRoomHandler(ClientResponseHandler clientResponseHandler){
+        this.clientResponseHandler = clientResponseHandler;
     }
 
     public Map<String, ArrayList<JSONObject>> deleteRoom(String roomID, Client client){
@@ -35,15 +35,15 @@ public class DeleteRoomHandler {
                 // Move to MainHall
                 ServerState.getServerStateInstance().roomList.get("MainHall-"+System.getProperty("serverID")).addClientList(deleteRoomClients);
 
-                broadcastResponse.add( this.responseHandler
+                broadcastResponse.add( this.clientResponseHandler
                         .broadCastRoomChange(client.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID")));
                 for(Client movingClient: deleteRoomClients){
-                    JSONObject broadcastRoomChange = this.responseHandler
+                    JSONObject broadcastRoomChange = this.clientResponseHandler
                             .broadCastRoomChange(movingClient.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID"));
                     broadcastResponse.add(broadcastRoomChange);
                 }
                 // Response to approve
-                JSONObject approveResponse = this.responseHandler.deleteRoomResponse(roomID, "true");
+                JSONObject approveResponse = this.clientResponseHandler.deleteRoomResponse(roomID, "true");
                 responses.put("broadcast", broadcastResponse);
                 clientOnlyResponse.add(approveResponse);
                 responses.put("client-only", clientOnlyResponse);
@@ -51,7 +51,7 @@ public class DeleteRoomHandler {
             }
         }
         // Response to reject
-        JSONObject rejectResponse = this.responseHandler.deleteRoomResponse(roomID, "false");
+        JSONObject rejectResponse = this.clientResponseHandler.deleteRoomResponse(roomID, "false");
         clientOnlyResponse.add(rejectResponse);
         responses.put("client-only", clientOnlyResponse);
         return responses;

@@ -11,10 +11,10 @@ import java.util.*;
 public class CreateRoomHandler {
 
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
-    private final ResponseHandler responseHandler;
+    private final ClientResponseHandler clientResponseHandler;
 
-    public CreateRoomHandler(ResponseHandler responseHandler){
-        this.responseHandler = responseHandler;
+    public CreateRoomHandler(ClientResponseHandler clientResponseHandler){
+        this.clientResponseHandler = clientResponseHandler;
     }
 
     public boolean checkOwnerUnique(String owner){
@@ -55,7 +55,7 @@ public class CreateRoomHandler {
         String formerID = new ClientListInRoomHandler().getClientsRoomID(client.getIdentity());
         ServerState.getServerStateInstance().addClientToRoom(roomID, client);
         ServerState.getServerStateInstance().removeClientFromRoom(formerID, client);
-        response = responseHandler.moveToRoomResponse(client.getIdentity(), formerID, roomID);
+        response = clientResponseHandler.moveToRoomResponse(client.getIdentity(), formerID, roomID);
         return response;
     }
 
@@ -67,14 +67,14 @@ public class CreateRoomHandler {
             Room room = new Room(roomid, System.getProperty("serverID"), client.getIdentity(), clients);
             ServerState.getServerStateInstance().roomList.put(roomid, room);
             logger.info("New room creation accepted");
-            JSONObject createRoomResponse = this.responseHandler.sendNewRoomResponse(roomid, "true");
+            JSONObject createRoomResponse = this.clientResponseHandler.sendNewRoomResponse(roomid, "true");
             JSONObject roomChangedResponse = moveToNewRoom(room, client);
             responses.put("client-only",createRoomResponse);
             responses.put("broadcast",roomChangedResponse);
 
         } else {
             logger.info("New room creation rejected");
-            JSONObject createRoomResponse = this.responseHandler.sendNewRoomResponse(roomid, "false");
+            JSONObject createRoomResponse = this.clientResponseHandler.sendNewRoomResponse(roomid, "false");
             responses.put("client-only",createRoomResponse);
         }
         return responses;

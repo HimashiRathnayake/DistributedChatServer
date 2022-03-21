@@ -5,16 +5,16 @@ import org.json.simple.JSONObject;
 
 public class MessageHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
-    private final ResponseHandler responseHandler;
+    private final ClientResponseHandler clientResponseHandler;
 
-    public MessageHandler(ResponseHandler responseHandler){
-        this.responseHandler = responseHandler;
+    public MessageHandler(ClientResponseHandler clientResponseHandler){
+        this.clientResponseHandler = clientResponseHandler;
     }
 
     public JSONObject handleMessage(String clientID, String content){
         JSONObject response;
         logger.info("Broadcasting Message");
-        response = responseHandler.broadCastMessage(clientID, content);
+        response = clientResponseHandler.broadCastMessage(clientID, content);
         return response;
     }
 }

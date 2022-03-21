@@ -22,6 +22,7 @@ public class RequestHandler {
         JSONObject request = new JSONObject();
         request.put("type", "newidentity");
         request.put("identity", clientID);
+        request.put("serverid", System.getProperty("serverID"));
         return request;
     }
 

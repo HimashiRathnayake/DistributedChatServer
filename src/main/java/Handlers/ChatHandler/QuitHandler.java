@@ -12,10 +12,10 @@ import java.util.Map;
 
 public class QuitHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
-    private final ResponseHandler responseHandler;
+    private final ClientResponseHandler clientResponseHandler;
 
-    public QuitHandler(ResponseHandler responseHandler) {
-        this.responseHandler = responseHandler;
+    public QuitHandler(ClientResponseHandler clientResponseHandler) {
+        this.clientResponseHandler = clientResponseHandler;
     }
 
     public Map<String, ArrayList<JSONObject>> handleQuit(Client client) {
@@ -30,7 +30,7 @@ public class QuitHandler {
 
         if (deleteRoom == null){
             String formerRoom = ServerState.getServerStateInstance().removeClientFromRoomWithFormerRoom(client); // delete client from room
-            clientOnlyResponse.add(this.responseHandler.broadCastRoomChange(clientID, formerRoom, ""));
+            clientOnlyResponse.add(this.clientResponseHandler.broadCastRoomChange(clientID, formerRoom, ""));
             responses.put("client-only", clientOnlyResponse);
         } else {
             ArrayList<Client> deleteRoomClients = deleteRoom.getClients();
@@ -42,11 +42,11 @@ public class QuitHandler {
             // Move to MainHall
             ServerState.getServerStateInstance().roomList.get("MainHall-"+System.getProperty("serverID")).addClientList(deleteRoomClients);
             for(Client movingClient: deleteRoomClients){
-                JSONObject broadcastRoomChange = this.responseHandler
+                JSONObject broadcastRoomChange = this.clientResponseHandler
                         .broadCastRoomChange(movingClient.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID"));
                 broadcastResponse.add(broadcastRoomChange);
             }
-            replyResponse.add(this.responseHandler
+            replyResponse.add(this.clientResponseHandler
                     .broadCastRoomChange(client.getIdentity(), "deletedRoom", ""));
             responses.put("reply", replyResponse);
             responses.put("broadcast", broadcastResponse);
