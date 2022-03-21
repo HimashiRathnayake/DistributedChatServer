@@ -2,6 +2,7 @@ package Services.ChatService;
 
 import Handlers.ChatHandler.*;
 import Models.Client;
+import Models.Server.ServerData;
 import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -136,6 +137,7 @@ public class ChatClientService extends Thread {
                         for (ChatClientService service : clientThreads) {
                             sendBroadcast(service.clientSocket, messageResponse);
                         }
+                        sendToServers(messageResponse);
                     }
                 }
             } catch (IOException | ParseException e) {
@@ -146,7 +148,6 @@ public class ChatClientService extends Thread {
         }
     }
 
-    //TODO: Remove this and merge to following one
     public void send(JSONObject obj) throws IOException {
         OutputStream out = this.clientSocket.getOutputStream();
         out.write((obj.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
@@ -157,6 +158,15 @@ public class ChatClientService extends Thread {
         OutputStream out = socket.getOutputStream();
         out.write((obj.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
         out.flush();
+    }
+
+    //TODO: need to close connection
+    public void sendToServers(JSONObject obj) throws IOException {
+        ServerData server = ServerState.getServerStateInstance().getServersList().get("s1");
+        Socket socket = new Socket(server.getServerAddress(), server.getCoordinationPort());
+        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        dataOutputStream.write((obj.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
+        dataOutputStream.flush();
     }
 
 }

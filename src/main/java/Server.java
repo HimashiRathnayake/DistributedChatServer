@@ -39,6 +39,7 @@ public class Server {
             ServerState.getServerStateInstance().addNewRoom(mainHall);
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
+
             Selector selector = Selector.open();
             int[] ports = {server_info.getClientPort(), server_info.getCoordinationPort()};
 
@@ -54,8 +55,8 @@ public class Server {
                 Set<SelectionKey> readyKeys = selector.selectedKeys();
                 for (SelectionKey key : readyKeys) {
                     if (key.isAcceptable()) {
-                        SocketChannel client = ((ServerSocketChannel) key.channel()).accept();
-                        Socket socket = client.socket();
+                        SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
+                        Socket socket = channel.socket();
                         int port = socket.getLocalPort();
                         if (server_info.getClientPort()==port){
                             ChatClientService clientThread = new ChatClientService(socket);
