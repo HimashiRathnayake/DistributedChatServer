@@ -5,9 +5,7 @@ import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 public class JoinRoomHandler {
 
@@ -47,12 +45,7 @@ public class JoinRoomHandler {
 
     public boolean checkRoomsinSameServer(String currentRoomServer, String newRoomServer){
 
-        boolean isInSameServer = false;
-
-        if (currentRoomServer.equals(newRoomServer)) {
-            isInSameServer = true;
-        }
-        return isInSameServer;
+        return currentRoomServer.equals(newRoomServer);
     }
 
     public JSONObject moveToNewRoom(String former, String roomid, Client client){
@@ -63,17 +56,17 @@ public class JoinRoomHandler {
         return response;
     }
 
-    public ArrayList<JSONObject> joinRoom(Client client, String roomid){
-
-        ArrayList<JSONObject> responses = new ArrayList<>();
+    public Map<String, JSONObject> joinRoom(Client client, String roomid){
+        Map<String, JSONObject> responses = new HashMap<>();
         currentChatRoom = clientListInRoomHandler.getClientsRoomID(client.getIdentity());
         String currentRoomServer = ServerState.getServerStateInstance().roomList.get(currentChatRoom).getServer();
-        String newRoomServer = ServerState.getServerStateInstance().roomList.get(roomid).getServer();
 
         if (checkRoomIdExist(roomid) && checkClientisOwner(client.getIdentity(), currentChatRoom)) {
+            String newRoomServer = ServerState.getServerStateInstance().roomList.get(roomid).getServer();
             if (checkRoomsinSameServer(currentRoomServer, newRoomServer)) {
                 logger.info("Join room within same server is accepted");
-                responses.add(moveToNewRoom(currentChatRoom, roomid, client));
+                JSONObject roomChangedResponse = moveToNewRoom(currentChatRoom, roomid, client);
+                responses.put("broadcast",roomChangedResponse);
             }
             else {
                 logger.info("Redirecting to another server");
@@ -82,13 +75,16 @@ public class JoinRoomHandler {
                 //int port = ServerState.getServerStateInstance().getCurrentServerData().getClientPort();
                 //responses.add(responseHandler.sendNewRouteMessage(roomid, host, Integer.toString(port)));
                 //remove clients from serverlist
-                ServerState.getServerStateInstance().clients.remove(client.getIdentity());
-                responses.add(moveToNewRoom(currentChatRoom, roomid, client));
+                //ServerState.getServerStateInstance().clients.remove(client.getIdentity());
+                //responses.add(moveToNewRoom(currentChatRoom, roomid, client));
+                JSONObject roomChangedResponse = moveToNewRoom(currentChatRoom, roomid, client);
+                responses.put("broadcast",roomChangedResponse);
             }
 
         } else {
             logger.info("Join room rejected");
-            responses.add(moveToNewRoom(currentChatRoom, currentChatRoom, client));
+            JSONObject roomChangedResponse = this.responseHandler.broadCastRoomChange(client.getIdentity(),roomid,roomid);
+            responses.put("client-only",roomChangedResponse);
         }
         return responses;
     }

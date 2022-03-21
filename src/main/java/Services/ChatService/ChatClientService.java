@@ -68,9 +68,21 @@ public class ChatClientService extends Thread {
                     }
                     case "joinroom" -> {
                         logger.info("Received message type joinroom");
-                        ArrayList<JSONObject> joinResponses = new JoinRoomHandler(this.responseHandler).joinRoom(client, (String) message.get("roomid"));
-                        for (JSONObject response : joinResponses) {
-                            send(response);
+                        List<ChatClientService> clientThreads_formerRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                        Map<String, JSONObject> joinRoomResponses = new JoinRoomHandler(this.responseHandler).joinRoom(client, (String) message.get("roomid"));
+                        List<ChatClientService> clientThreads_joinedRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+
+                        if (joinRoomResponses.containsKey("client-only")) {
+                            send(joinRoomResponses.get("client-only"));
+                        }
+                        if (joinRoomResponses.containsKey("broadcast")) {
+                            sendBroadcast(this.clientSocket, joinRoomResponses.get("broadcast"));
+                            for (ChatClientService service : clientThreads_formerRoom) {
+                                sendBroadcast(service.clientSocket, joinRoomResponses.get("broadcast"));
+                            }
+                            for (ChatClientService service : clientThreads_joinedRoom) {
+                                sendBroadcast(service.clientSocket, joinRoomResponses.get("broadcast"));
+                            }
                         }
                     }
                     case "movejoin" -> {
