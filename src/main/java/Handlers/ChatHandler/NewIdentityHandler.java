@@ -32,7 +32,6 @@ public class NewIdentityHandler {
 
     public String checkIdentityUnique(String identity) {
         String isIdentityUnique = "true";
-        // TODO: Check identity from all servers.
         ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
         ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
         if (Objects.equals(currentServer.getServerID(), leaderServer.getServerID())){
@@ -61,20 +60,25 @@ public class NewIdentityHandler {
 
     public Map<String, JSONObject> addNewIdentity(ChatClientService service, Client client, String identity){
         Map<String, JSONObject> responses = new HashMap<>();
-        ServerState.getServerStateInstance().clientServices.put(identity, service);
-        if (checkIdentityRules(identity) && checkIdentityUnique(identity).equals("true")){
+        ServerState.getServerStateInstance().clientServices.put("1temp-"+identity, service); //
+        boolean checkIdentityRules = checkIdentityRules(identity);
+        String checkIdentityUnique = checkIdentityUnique(identity);
+        if (checkIdentityRules && checkIdentityUnique.equals("true")){
             client.setIdentity(identity);
             client.setServer(System.getProperty("serverID"));
             client.setStatus("active");
             ServerState.getServerStateInstance().clients.put(identity, client);
+            LeaderState.getInstance().globalClients.put(identity, client);
+            ServerState.getServerStateInstance().clientServices.remove("1temp-"+identity, service); //
+            ServerState.getServerStateInstance().clientServices.put(identity, service); //
             logger.info("New identity creation accepted");
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("true"));
             responses.put("broadcast", moveToMainHall(client));
-        } else if(checkIdentityUnique(identity).equals("askedFromLeader")){
+        } else if(checkIdentityRules && checkIdentityUnique.equals("askedFromLeader")){
             logger.info("Asked from leader");
             responses.put("askedFromLeader", null);
-        }else {
-            ServerState.getServerStateInstance().clientServices.remove(identity);
+        } else {
+            ServerState.getServerStateInstance().clientServices.remove("1temp-"+identity); //
             logger.info("New identity creation rejected");
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("false"));
         }

@@ -1,6 +1,5 @@
 import Models.Client;
 import Models.Room;
-import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ConfigFileReaderService;
@@ -60,14 +59,16 @@ public class Server {
                 for (SelectionKey key : readyKeys) {
                     if (key.isAcceptable()) {
                         SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
-                        Socket socket = channel.socket();
-                        int port = socket.getLocalPort();
-                        if (server_info.getClientPort()==port){
-                            ChatClientService clientThread = new ChatClientService(socket);
-                            clientThread.start();
-                        } else {
-                            CoordinationService coordinatorThread = new CoordinationService(socket);
-                            coordinatorThread.start();
+                        if (channel!=null) {
+                            Socket socket = channel.socket();
+                            int port = socket.getLocalPort();
+                            if (server_info.getClientPort() == port) {
+                                ChatClientService clientThread = new ChatClientService(socket);
+                                clientThread.start();
+                            } else {
+                                CoordinationService coordinatorThread = new CoordinationService(socket);
+                                coordinatorThread.start();
+                            }
                         }
                     }
                 }

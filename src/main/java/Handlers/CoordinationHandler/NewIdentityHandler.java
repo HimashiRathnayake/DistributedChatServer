@@ -73,13 +73,16 @@ public class NewIdentityHandler {
             client.setServer(System.getProperty("serverID"));
             client.setStatus("active");
             ServerState.getServerStateInstance().clients.put(client.getIdentity(), client);
+            ChatClientService service = ServerState.getServerStateInstance().clientServices.get("1temp-"+identity); //
+            ServerState.getServerStateInstance().clientServices.put(client.getIdentity(), service); //
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("true"));
             responses.put("broadcast", moveToMainHall(client));
         }else if(isApproved.equals("false")){
-            ServerState.getServerStateInstance().clientServices.remove(identity);
+//            ServerState.getServerStateInstance().clientServices.remove("test"); //
             logger.info("New identity creation rejected");
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("false"));
         }
+        ServerState.getServerStateInstance().clientServices.remove("1temp-"+identity); //
         return responses;
     }
 }

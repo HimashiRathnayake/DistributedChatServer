@@ -28,10 +28,15 @@ public class MessageTransferService {
     public void sendToServers(JSONObject message, String host, int port) {
         try{
             Socket socket = new Socket(host, port);
-            DataOutputStream dataOutputStream = null;
-            dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
             dataOutputStream.flush();
+            while (true){
+                if(socket.isClosed()){
+                    socket.close();
+                    break;
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

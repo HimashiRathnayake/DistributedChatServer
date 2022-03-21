@@ -11,7 +11,9 @@ public class LeaderState {
     private static LeaderState instance;
 
     public static synchronized LeaderState getInstance() {
-        if (instance == null && ServerState.getServerStateInstance().getCurrentServerData().equals(ServerState.getServerStateInstance().getLeaderServerData())) {
+        ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
+        ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
+        if (instance == null && currentServer.getServerID().equals(leaderServer.getServerID())) {
             instance = new LeaderState();
         }
         return instance;

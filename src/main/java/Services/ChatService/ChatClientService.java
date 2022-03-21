@@ -2,7 +2,6 @@ package Services.ChatService;
 
 import Handlers.ChatHandler.*;
 import Models.Client;
-import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.MessageTransferService;
 import org.apache.log4j.Logger;
@@ -127,9 +126,13 @@ public class ChatClientService extends Thread {
                         if (!responses.containsKey("askedFromLeader")) {
                             List<ChatClientService> clientThreads_newId = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                             new MessageTransferService().send(this.clientSocket, responses.get("client-only"));
-                            new MessageTransferService().send(this.clientSocket, responses.get("broadcast"));
                             if (responses.containsKey("broadcast")) {
-                                new MessageTransferService().sendBroadcast(clientThreads_newId, responses.get("broadcast"));
+                                new MessageTransferService().send(this.clientSocket, responses.get("broadcast"));
+                                if (responses.containsKey("broadcast")) {
+                                    new MessageTransferService().sendBroadcast(clientThreads_newId, responses.get("broadcast"));
+                                }
+                            } else{
+                                this.stopThread(); //close thread if the newIdentity rejected - Only for newIdentity
                             }
                         }
                     }
@@ -140,9 +143,6 @@ public class ChatClientService extends Thread {
                         List<ChatClientService> clientThreads = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         JSONObject messageResponse = new MessageHandler(this.clientResponseHandler).handleMessage(clientID, content);
                         new MessageTransferService().sendBroadcast(clientThreads, messageResponse);
-                        //TODO: Remove later - Only for testing
-                        ServerData server = ServerState.getServerStateInstance().getServersList().get("s1");
-                        new MessageTransferService().sendToServers(messageResponse, server.getServerAddress(), server.getCoordinationPort());
                     }
                 }
             } catch (IOException e) {
