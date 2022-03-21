@@ -22,7 +22,6 @@ public class ResponseHandler {
         return newIdentity;
     }
 
-    // quit
     // newidentity - {"type": "leadernewidentity",  “approved”: ”true”,  "identity": "Adel"}
     @SuppressWarnings("unchecked")
     public JSONObject sendNewIdentityServerResponse(String isAccepted, String clientIdentity){
@@ -32,8 +31,5 @@ public class ResponseHandler {
         newIdentity.put("identity",clientIdentity);
         return newIdentity;
     }
-    // message
-    // {"type" : "newidentity", "approved" : "true"}
-
 
 }

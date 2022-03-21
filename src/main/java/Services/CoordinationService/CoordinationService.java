@@ -60,18 +60,19 @@ public class CoordinationService extends Thread {
                         Client client = new Client();
                         JSONObject response = new NewIdentityHandler().coordinatorNewClientIdentity(client, (String) message.get("identity"), (String) message.get("serverid"));
                         ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
-                        new MessageTransferService().sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                        MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
                     }
                     case "leadernewidentity" -> {
                         logger.info("Received message type leadernewidentity");
                         Client client = new Client();
-                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get("1temp-" + (String) message.get("identity"));
+                        String newClientID = (String) message.get("identity");
+                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get("1temp-"+newClientID);
                         Map<String, JSONObject> responses = new NewIdentityHandler().leaderApprovedNewClientIdentity((String) message.get("approved"), client, (String) message.get("identity"));
                         List<ChatClientService> clientThreads_newId = ServerState.getServerStateInstance().getClientServicesInRoomByClient(client);
-                        new MessageTransferService().send(chatClientService.getClientSocket(), responses.get("client-only"));
+                        MessageTransferService.send(chatClientService.getClientSocket(), responses.get("client-only"));
                         if (responses.containsKey("broadcast")) {
-                            new MessageTransferService().send(chatClientService.getClientSocket(), responses.get("broadcast"));
-                            new MessageTransferService().sendBroadcast(clientThreads_newId, responses.get("broadcast"));
+                            MessageTransferService.send(chatClientService.getClientSocket(), responses.get("broadcast"));
+                            MessageTransferService.sendBroadcast(clientThreads_newId, responses.get("broadcast"));
                         }
                     }
                 }

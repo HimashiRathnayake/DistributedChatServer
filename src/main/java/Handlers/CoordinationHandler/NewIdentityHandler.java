@@ -1,13 +1,11 @@
 package Handlers.CoordinationHandler;
 
-
 import Handlers.ChatHandler.ClientResponseHandler;
 import Models.Client;
 import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
-import Services.MessageTransferService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -28,7 +26,6 @@ public class NewIdentityHandler {
 
     public boolean checkIdentityUnique(String identity) {
         boolean isIdentityUnique = true;
-        // TODO: Check identity from all servers.
         ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
         ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
         if (Objects.equals(currentServer.getServerID(), leaderServer.getServerID())) {
@@ -72,17 +69,19 @@ public class NewIdentityHandler {
             client.setIdentity(identity);
             client.setServer(System.getProperty("serverID"));
             client.setStatus("active");
-            ServerState.getServerStateInstance().clients.put(client.getIdentity(), client);
             ChatClientService service = ServerState.getServerStateInstance().clientServices.get("1temp-"+identity); //
-            ServerState.getServerStateInstance().clientServices.put(client.getIdentity(), service); //
+            service.setClient(client);
+            ServerState.getServerStateInstance().clients.put(client.getIdentity(), client);
+            ServerState.getServerStateInstance().clientServices.remove("1temp-"+identity, service); //
+            ServerState.getServerStateInstance().clientServices.put(identity, service); //
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("true"));
             responses.put("broadcast", moveToMainHall(client));
         }else if(isApproved.equals("false")){
 //            ServerState.getServerStateInstance().clientServices.remove("test"); //
             logger.info("New identity creation rejected");
+            ServerState.getServerStateInstance().clientServices.remove("1temp-"+identity); //
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("false"));
         }
-        ServerState.getServerStateInstance().clientServices.remove("1temp-"+identity); //
         return responses;
     }
 }
