@@ -6,9 +6,7 @@ import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 public class CreateRoomHandler {
 
@@ -61,21 +59,23 @@ public class CreateRoomHandler {
         return response;
     }
 
-    public ArrayList<JSONObject> createRoom(Client client, String roomid){
-
-        ArrayList<JSONObject> responses = new ArrayList<>();
+    public Map<String, JSONObject> createRoom(Client client, String roomid){
+        Map<String, JSONObject> responses = new HashMap<>();
         ArrayList<Client> clients = new ArrayList<>();
         if (checkOwnerUnique(client.getIdentity()) && checkRoomIdUnique(roomid)
                 && checkRoomIdRules(roomid)){
             Room room = new Room(roomid, System.getProperty("serverID"), client.getIdentity(), clients);
             ServerState.getServerStateInstance().roomList.put(roomid, room);
             logger.info("New room creation accepted");
-            responses.add(responseHandler.sendNewRoomResponse(roomid, "true"));
-            responses.add(moveToNewRoom(room, client));
+            JSONObject createRoomResponse = this.responseHandler.sendNewRoomResponse(roomid, "true");
+            JSONObject roomChangedResponse = moveToNewRoom(room, client);
+            responses.put("client-only",createRoomResponse);
+            responses.put("broadcast",roomChangedResponse);
 
         } else {
             logger.info("New room creation rejected");
-            responses.add(responseHandler.sendNewRoomResponse(roomid,"false"));
+            JSONObject createRoomResponse = this.responseHandler.sendNewRoomResponse(roomid, "false");
+            responses.put("client-only",createRoomResponse);
         }
         return responses;
     }
