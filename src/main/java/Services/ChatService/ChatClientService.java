@@ -30,6 +30,10 @@ public class ChatClientService extends Thread {
         running = false;
     }
 
+    public void setClient(Client client){
+        this.client = client;
+    }
+
     public void run() {
         while (running) {
             try {
@@ -44,7 +48,7 @@ public class ChatClientService extends Thread {
                         logger.info("Received message type list");
                         //TODO: get room list from other servers
                         JSONObject roomListResponse = new ClientResponseHandler().sendRoomList(new RoomListHandler(clientResponseHandler).getRoomList());
-                        new MessageTransferService().send(this.clientSocket, roomListResponse);
+                        MessageTransferService.send(this.clientSocket, roomListResponse);
                     }
                     case "who" -> {
                         logger.info("Received message type who");
@@ -53,16 +57,16 @@ public class ChatClientService extends Thread {
                         ArrayList<String> identities = clientListInRoomHandler.getClientsInRoom(roomID);
                         String owner = clientListInRoomHandler.getRoomOwner(roomID);
                         JSONObject clientInRoomListResponse = new ClientResponseHandler().sendClientListInChatRoom(roomID, identities, owner);
-                        new MessageTransferService().send(this.clientSocket, clientInRoomListResponse);
+                        MessageTransferService.send(this.clientSocket, clientInRoomListResponse);
                     }
                     case "createroom" -> {
                         logger.info("Received message type createroom");
                         List<ChatClientService> clientThreads_formerRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         Map<String, JSONObject> createRoomResponses = new CreateRoomHandler(this.clientResponseHandler).createRoom(client, (String) message.get("roomid"));
-                        new MessageTransferService().send(this.clientSocket, createRoomResponses.get("client-only"));
+                        MessageTransferService.send(this.clientSocket, createRoomResponses.get("client-only"));
                         if (createRoomResponses.containsKey("broadcast")) {
-                            new MessageTransferService().send(this.clientSocket, createRoomResponses.get("broadcast"));
-                            new MessageTransferService().sendBroadcast(clientThreads_formerRoom, createRoomResponses.get("broadcast"));
+                            MessageTransferService.send(this.clientSocket, createRoomResponses.get("broadcast"));
+                            MessageTransferService.sendBroadcast(clientThreads_formerRoom, createRoomResponses.get("broadcast"));
                         }
                     }
                     case "joinroom" -> {
@@ -72,21 +76,21 @@ public class ChatClientService extends Thread {
                         List<ChatClientService> clientThreads_joinedRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
 
                         if (joinRoomResponses.containsKey("client-only")) {
-                            new MessageTransferService().send(this.clientSocket, joinRoomResponses.get("client-only"));
+                            MessageTransferService.send(this.clientSocket, joinRoomResponses.get("client-only"));
                         }
                         if (joinRoomResponses.containsKey("broadcast")) {
-                            new MessageTransferService().send(this.clientSocket, joinRoomResponses.get("broadcast"));
-                            new MessageTransferService().sendBroadcast(clientThreads_formerRoom, joinRoomResponses.get("broadcast"));
-                            new MessageTransferService().sendBroadcast(clientThreads_joinedRoom, joinRoomResponses.get("broadcast"));
+                            MessageTransferService.send(this.clientSocket, joinRoomResponses.get("broadcast"));
+                            MessageTransferService.sendBroadcast(clientThreads_formerRoom, joinRoomResponses.get("broadcast"));
+                            MessageTransferService.sendBroadcast(clientThreads_joinedRoom, joinRoomResponses.get("broadcast"));
                         }
                     }
                     case "movejoin" -> {
                         // TODO: have to check the functionality
                         logger.info("Received message type movejoin");
                         Map<String, JSONObject> movejoinResponses = new MoveJoinHandler(this.clientResponseHandler).movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
-                        new MessageTransferService().send(this.clientSocket, movejoinResponses.get("client-only"));
+                        MessageTransferService.send(this.clientSocket, movejoinResponses.get("client-only"));
                         List<ChatClientService> clientThreads_movejoin = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-                        new MessageTransferService().sendBroadcast(clientThreads_movejoin, movejoinResponses.get("broadcast"));
+                        MessageTransferService.sendBroadcast(clientThreads_movejoin, movejoinResponses.get("broadcast"));
                     }
                     case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
@@ -94,11 +98,11 @@ public class ChatClientService extends Thread {
                         if (deleteRoomResponses.containsKey("broadcast")) {
                             List<ChatClientService> clientThreads_deleteRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                             for (JSONObject deleteResponse : deleteRoomResponses.get("broadcast")) {
-                                new MessageTransferService().send(this.clientSocket, deleteResponse);
-                                new MessageTransferService().sendBroadcast(clientThreads_deleteRoom, deleteResponse);
+                                MessageTransferService.send(this.clientSocket, deleteResponse);
+                                MessageTransferService.sendBroadcast(clientThreads_deleteRoom, deleteResponse);
                             }
                         }
-                        new MessageTransferService().send(this.clientSocket, deleteRoomResponses.get("client-only").get(0));
+                        MessageTransferService.send(this.clientSocket, deleteRoomResponses.get("client-only").get(0));
                     }
                     case "quit" -> {
                         logger.info("Received message type quit");
@@ -106,14 +110,14 @@ public class ChatClientService extends Thread {
                         Map<String, ArrayList<JSONObject>> quitResponses = new QuitHandler(this.clientResponseHandler).handleQuit(this.client);
                         if (quitResponses.containsKey("broadcast")) {
                             for (JSONObject response : quitResponses.get("broadcast")) {
-                                new MessageTransferService().sendBroadcast(clientThreads_quit, response);
+                                MessageTransferService.sendBroadcast(clientThreads_quit, response);
                             }
                         }
                         if (quitResponses.containsKey("reply")) {
-                            new MessageTransferService().send(this.clientSocket, quitResponses.get("reply").get(0));
+                            MessageTransferService.send(this.clientSocket, quitResponses.get("reply").get(0));
                         }
                         if (quitResponses.containsKey("client-only")) {
-                            new MessageTransferService().send(this.clientSocket, quitResponses.get("client-only").get(0));
+                            MessageTransferService.send(this.clientSocket, quitResponses.get("client-only").get(0));
                         }
                         // server closes the connection
                         ServerState.getServerStateInstance().clientServices.remove(this.client.getIdentity());
@@ -125,11 +129,11 @@ public class ChatClientService extends Thread {
                         Map<String, JSONObject> responses = new NewIdentityHandler(this.clientResponseHandler).addNewIdentity(this, client, (String) message.get("identity"));
                         if (!responses.containsKey("askedFromLeader")) {
                             List<ChatClientService> clientThreads_newId = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-                            new MessageTransferService().send(this.clientSocket, responses.get("client-only"));
+                            MessageTransferService.send(this.clientSocket, responses.get("client-only"));
                             if (responses.containsKey("broadcast")) {
-                                new MessageTransferService().send(this.clientSocket, responses.get("broadcast"));
+                                MessageTransferService.send(this.clientSocket, responses.get("broadcast"));
                                 if (responses.containsKey("broadcast")) {
-                                    new MessageTransferService().sendBroadcast(clientThreads_newId, responses.get("broadcast"));
+                                    MessageTransferService.sendBroadcast(clientThreads_newId, responses.get("broadcast"));
                                 }
                             } else{
                                 this.stopThread(); //close thread if the newIdentity rejected - Only for newIdentity
@@ -142,7 +146,7 @@ public class ChatClientService extends Thread {
                         String content = (String) message.get("content");
                         List<ChatClientService> clientThreads = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
                         JSONObject messageResponse = new MessageHandler(this.clientResponseHandler).handleMessage(clientID, content);
-                        new MessageTransferService().sendBroadcast(clientThreads, messageResponse);
+                        MessageTransferService.sendBroadcast(clientThreads, messageResponse);
                     }
                 }
             } catch (IOException e) {

@@ -44,7 +44,7 @@ public class NewIdentityHandler {
             }
         } else {
             JSONObject request = serverRequestHandler.sendNewIdentityResponse(identity);
-            new MessageTransferService().sendToServers(request, leaderServer.getServerAddress(), leaderServer.getCoordinationPort());
+            MessageTransferService.sendToServers(request, leaderServer.getServerAddress(), leaderServer.getCoordinationPort());
             isIdentityUnique = "askedFromLeader";
         }
         return isIdentityUnique;

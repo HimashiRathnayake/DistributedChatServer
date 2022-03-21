@@ -14,8 +14,6 @@ public class RequestHandler {
     // movejoin
     // deleteroom - {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}
 
-    // quit - {"type": "quit", "identity": "Adel"}
-
     // newidentity - {"type": "newidentity", "identity": "Adel"}
     @SuppressWarnings("unchecked")
     public JSONObject sendNewIdentityResponse(String clientID){
@@ -25,7 +23,5 @@ public class RequestHandler {
         request.put("serverid", System.getProperty("serverID"));
         return request;
     }
-
-    // message
 
 }
