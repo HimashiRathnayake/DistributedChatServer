@@ -53,6 +53,7 @@ public class CoordinationService extends Thread {
                     }
                     case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
+                        // TODO: have to do something when resceive deleteroom broad cast message
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");

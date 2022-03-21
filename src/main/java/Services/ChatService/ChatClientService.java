@@ -91,14 +91,19 @@ public class ChatClientService extends Thread {
                     case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
                         Map<String, ArrayList<JSONObject>> deleteRoomResponses = new DeleteRoomHandler(this.clientResponseHandler).deleteRoom((String) message.get("roomid"), this.client);
-                        if (deleteRoomResponses.containsKey("broadcast")) {
+                        MessageTransferService messageTransferService = new MessageTransferService();
+                        if(deleteRoomResponses.containsKey("broadcastServers")){
+                            messageTransferService.sendToServersBroadcast(deleteRoomResponses.get("broadcastServers").get(0));
+                        }
+                        if (deleteRoomResponses.containsKey("broadcastClients")) {
+
                             List<ChatClientService> clientThreads_deleteRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-                            for (JSONObject deleteResponse : deleteRoomResponses.get("broadcast")) {
-                                new MessageTransferService().send(this.clientSocket, deleteResponse);
-                                new MessageTransferService().sendBroadcast(clientThreads_deleteRoom, deleteResponse);
+                            for (JSONObject deleteResponse : deleteRoomResponses.get("broadcastClients")) {
+                                messageTransferService.send(this.clientSocket, deleteResponse);
+                                messageTransferService.sendBroadcast(clientThreads_deleteRoom, deleteResponse);
                             }
                         }
-                        new MessageTransferService().send(this.clientSocket, deleteRoomResponses.get("client-only").get(0));
+                        messageTransferService.send(this.clientSocket, deleteRoomResponses.get("client-only").get(0));
                     }
                     case "quit" -> {
                         logger.info("Received message type quit");
