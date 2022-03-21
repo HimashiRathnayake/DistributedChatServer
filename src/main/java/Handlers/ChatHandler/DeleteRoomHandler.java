@@ -40,8 +40,6 @@ public class DeleteRoomHandler {
 
                 // Move to MainHall
                 ServerState.getServerStateInstance().roomList.get("MainHall-"+System.getProperty("serverID")).addClientList(deleteRoomClients);
-                broadcastClientResponse.add( this.clientResponseHandler
-                        .broadCastRoomChange(client.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID")));
                 for(Client movingClient: deleteRoomClients){
                     JSONObject broadcastRoomChange = this.clientResponseHandler
                             .broadCastRoomChange(movingClient.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID"));
