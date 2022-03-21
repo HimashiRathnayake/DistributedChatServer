@@ -1,5 +1,7 @@
 package Handlers.CoordinationHandler;
 
+import org.json.simple.JSONObject;
+
 public class ResponseHandler {
     // Handle Responses From Leader
 
@@ -13,7 +15,17 @@ public class ResponseHandler {
     // deleteroom - {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}
 
     // quit
-    // newidentity - {"type": "newidentity", "approved": "true"}
+    // newidentity - {"type": "leadernewidentity",  “approved”: ”true”,  "identity": "Adel"}
+    @SuppressWarnings("unchecked")
+    public JSONObject sendNewIdentityServerResponse(String isAccepted, String clientIdentity){
+        JSONObject newIdentity = new JSONObject();
+        newIdentity.put("type", "leadernewidentity");
+        newIdentity.put("approved", isAccepted);
+        newIdentity.put("identity",clientIdentity);
+        return newIdentity;
+    }
     // message
+    // {"type" : "newidentity", "approved" : "true"}
+
 
 }

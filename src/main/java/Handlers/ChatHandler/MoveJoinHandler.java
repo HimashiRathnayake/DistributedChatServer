@@ -12,10 +12,10 @@ import java.util.concurrent.ConcurrentMap;
 
 public class MoveJoinHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
-    private final ResponseHandler responseHandler;
+    private final ClientResponseHandler clientResponseHandler;
 
-    public MoveJoinHandler(ResponseHandler responseHandler){
-        this.responseHandler = responseHandler;
+    public MoveJoinHandler(ClientResponseHandler clientResponseHandler){
+        this.clientResponseHandler = clientResponseHandler;
     }
 
     public Map<String, JSONObject> movejoin(String formerRoomID, String joinRoomID, String ClientID, Client client){
@@ -31,8 +31,8 @@ public class MoveJoinHandler {
             joinRoom = roomList.get("MainHall-"+System.getProperty("serverID"));
         }
         joinRoom.addClient(client);
-        JSONObject serverChangedResponse = this.responseHandler.serverChangedResponse();
-        JSONObject roomChangedResponse = this.responseHandler.broadCastRoomChange(ClientID,formerRoomID,joinRoom.getRoomID());
+        JSONObject serverChangedResponse = this.clientResponseHandler.serverChangedResponse();
+        JSONObject roomChangedResponse = this.clientResponseHandler.broadCastRoomChange(ClientID,formerRoomID,joinRoom.getRoomID());
         responses.put("client-only",serverChangedResponse);
         responses.put("broadcast",roomChangedResponse);
         return responses;

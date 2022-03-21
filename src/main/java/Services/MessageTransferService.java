@@ -12,19 +12,20 @@ import java.util.List;
 
 public class MessageTransferService {
 
-    public static void send(Socket socket, JSONObject message) throws IOException {
+    public MessageTransferService(){}
+    public void send(Socket socket, JSONObject message) throws IOException {
         OutputStream out = socket.getOutputStream();
         out.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
         out.flush();
     }
 
-    public static void sendBroadcast(List<ChatClientService> clientThreads, JSONObject message) throws IOException {
+    public void sendBroadcast(List<ChatClientService> clientThreads, JSONObject message) throws IOException {
         for (ChatClientService service : clientThreads) {
             send(service.getClientSocket(), message);
         }
     }
 
-    public static void sendToServers(JSONObject message, String host, int port) {
+    public void sendToServers(JSONObject message, String host, int port) {
         try{
             Socket socket = new Socket(host, port);
             DataOutputStream dataOutputStream = null;

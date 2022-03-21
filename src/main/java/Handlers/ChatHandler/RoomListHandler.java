@@ -9,10 +9,10 @@ import java.util.Iterator;
 public class RoomListHandler{
 
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
-    private final ResponseHandler responseHandler;
+    private final ClientResponseHandler clientResponseHandler;
 
-    public RoomListHandler(ResponseHandler responseHandler) {
-        this.responseHandler = responseHandler;
+    public RoomListHandler(ClientResponseHandler clientResponseHandler) {
+        this.clientResponseHandler = clientResponseHandler;
     }
 
     public ArrayList<String> getRoomList(){

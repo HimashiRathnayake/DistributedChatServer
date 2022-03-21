@@ -20,11 +20,9 @@ public class LeaderState {
     public ConcurrentHashMap<String, Client> getGlobalClients() {
         return globalClients;
     }
-
-    public static void setInstance(LeaderState instance) {
-        LeaderState.instance = instance;
+    public void addClientToGlobalList(Client client){
+        this.globalClients.put(client.getIdentity(),client);
     }
-
     public ConcurrentHashMap<String, Room> getGlobalRoomList() {
         return globalRoomList;
     }
