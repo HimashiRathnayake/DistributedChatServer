@@ -137,6 +137,7 @@ public class ChatClientService extends Thread {
                         for (ChatClientService service : clientThreads) {
                             sendBroadcast(service.clientSocket, messageResponse);
                         }
+                        //TODO: Remove later - Only for testing
                         sendToServers(messageResponse);
                     }
                 }
