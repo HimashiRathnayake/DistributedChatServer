@@ -1,5 +1,7 @@
 package Services;
 
+import Models.Server.ServerData;
+import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
 import org.json.simple.JSONObject;
 
@@ -9,6 +11,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 public class MessageTransferService {
 
@@ -43,4 +46,13 @@ public class MessageTransferService {
         }
     }
 
+    public void sendToServersBroadcast(JSONObject message) {
+        ConcurrentMap<String, ServerData> serverList = ServerState.getServerStateInstance().getServersList();
+        ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
+        for (ConcurrentMap.Entry<String, ServerData> entry : serverList.entrySet()) {
+            if (!currentServer.getServerID().equals(entry.getKey())) {
+                sendToServers(message, entry.getValue().getServerAddress(), entry.getValue().getCoordinationPort());
+            }
+        }
+    }
 }

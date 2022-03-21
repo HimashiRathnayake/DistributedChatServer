@@ -13,6 +13,14 @@ public class ResponseHandler {
 
     // movejoin
     // deleteroom - {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}
+    @SuppressWarnings("unchecked")
+    public JSONObject deleteRoomServerRespond(String serverID, String roomID){
+        JSONObject newIdentity = new JSONObject();
+        newIdentity.put("type", "deleteroom");
+        newIdentity.put("serverid", serverID);
+        newIdentity.put("roomid",roomID);
+        return newIdentity;
+    }
 
     // newidentity - {"type": "leadernewidentity",  “approved”: ”true”,  "identity": "Adel"}
     @SuppressWarnings("unchecked")

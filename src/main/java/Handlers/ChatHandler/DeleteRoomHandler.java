@@ -1,5 +1,6 @@
 package Handlers.ChatHandler;
 
+import Handlers.CoordinationHandler.ResponseHandler;
 import Models.Client;
 import Models.Room;
 import Models.Server.ServerState;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentMap;
 public class DeleteRoomHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
     private final ClientResponseHandler clientResponseHandler;
+    private final ResponseHandler serverResponseHandler = new ResponseHandler();
 
     public DeleteRoomHandler(ClientResponseHandler clientResponseHandler){
         this.clientResponseHandler = clientResponseHandler;
@@ -22,8 +24,9 @@ public class DeleteRoomHandler {
     public Map<String, ArrayList<JSONObject>> deleteRoom(String roomID, Client client){
         Map<String, ArrayList<JSONObject>> responses = new HashMap<>();
         ConcurrentMap<String, Room> roomList = ServerState.getServerStateInstance().getRoomList();
-        ArrayList<JSONObject> broadcastResponse = new ArrayList<>();
+        ArrayList<JSONObject> broadcastClientResponse = new ArrayList<>();
         ArrayList<JSONObject> clientOnlyResponse = new ArrayList<>();
+        ArrayList<JSONObject> broadcastServerResponse = new ArrayList<>();
         if(roomList.containsKey(roomID)){
             Room deleteRoom = roomList.get(roomID);
             if(deleteRoom.getOwner().equals(client.getIdentity())){
@@ -31,20 +34,22 @@ public class DeleteRoomHandler {
                 //delete room
                 ServerState.getServerStateInstance().roomList.remove(deleteRoom.getRoomID());
                 // TODO: broadcast delete to other servers  {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}
-                // JSONObject broadcastDelete = this.responseHandler.broadcastServersDeleteRoomResponse(System.getProperty("serverID"), roomID);
+                JSONObject serverBroadcastRespond = serverResponseHandler.deleteRoomServerRespond(System.getProperty("serverID"), roomID);
+                broadcastServerResponse.add(serverBroadcastRespond);
+                responses.put("broadcastServers", broadcastServerResponse);
+
                 // Move to MainHall
                 ServerState.getServerStateInstance().roomList.get("MainHall-"+System.getProperty("serverID")).addClientList(deleteRoomClients);
-
-                broadcastResponse.add( this.clientResponseHandler
+                broadcastClientResponse.add( this.clientResponseHandler
                         .broadCastRoomChange(client.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID")));
                 for(Client movingClient: deleteRoomClients){
                     JSONObject broadcastRoomChange = this.clientResponseHandler
                             .broadCastRoomChange(movingClient.getIdentity(), "deletedRoom", "MainHall-"+System.getProperty("serverID"));
-                    broadcastResponse.add(broadcastRoomChange);
+                    broadcastClientResponse.add(broadcastRoomChange);
                 }
                 // Response to approve
                 JSONObject approveResponse = this.clientResponseHandler.deleteRoomResponse(roomID, "true");
-                responses.put("broadcast", broadcastResponse);
+                responses.put("broadcastClients", broadcastClientResponse);
                 clientOnlyResponse.add(approveResponse);
                 responses.put("client-only", clientOnlyResponse);
                 return responses;
