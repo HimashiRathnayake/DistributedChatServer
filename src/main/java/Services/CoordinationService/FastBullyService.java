@@ -43,6 +43,7 @@ public class FastBullyService extends Thread{
                         logger.info("No view messages received. Server can become the leader");
                         electionInProgress = false;
                         // TODO: make this server leader
+//                        MessageTransferService.sendToServersBroadcast(messageHandler.coordinatorMessage()); //broadcast coordinator message
                     } else {
                         logger.info("View messages received.");
                         // TODO: Compare view messages and update
