@@ -65,7 +65,6 @@ public class ServerState {
 
     public void setLeaderServerData(ServerData leaderServerData) {
         this.leaderServerData = leaderServerData;
-        logger.info("New leader is set");
     }
 
 //    public synchronized List<ServerData> getHigherServerInfo() {

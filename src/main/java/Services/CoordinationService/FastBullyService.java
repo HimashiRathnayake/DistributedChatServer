@@ -10,6 +10,8 @@ import org.json.simple.JSONObject;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FastBullyService extends Thread{
 
@@ -34,28 +36,46 @@ public class FastBullyService extends Thread{
         this.operation = operation;
     }
 
+    public String getHighestPriorityServers(String currentServerID, ArrayList<JSONObject> servers){
+        String highestPriorityServer = currentServerID;
+        for (JSONObject server : servers){
+            String serverID = server.get("serverid").toString();
+            if (Integer.parseInt(highestPriorityServer.substring(1)) > Integer.parseInt(serverID.substring(1))){
+                highestPriorityServer = serverID;
+            }
+        }
+        return highestPriorityServer;
+    }
+
     public void run(){
         // send messages to other servers corresponding Fast Bully Algorithm.
         switch (operation) {
             case ("wait") -> {
                 try {
-                    Thread.sleep(6000);
-                    System.out.println(viewMessagesReceived);
+                    Thread.sleep(1000);
+                    ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
+                    String currentServerID = currentServer.getServerID();
                     if (viewMessagesReceived.isEmpty()){
-                        logger.info("No view messages received. Server can become the leader");
-                        electionInProgress = false;
-                        // TODO: make this server leader
-//                        MessageTransferService.sendToServersBroadcast(messageHandler.coordinatorMessage()); //broadcast coordinator message
+                        logger.info("No view messages received. Current server become the leader");
+                        ServerState.getServerStateInstance().setLeaderServerData(currentServer);
                     } else {
                         logger.info("View messages received.");
                         // TODO: Compare view messages and update
                         // Check highest priority server from views
-                        // If Current Server has the highest priority
-                        // broadcast coordinator message to others
-                        // Else
-                        // Save the highest priority server as leader
-                        // Stop procedure
+                        String highestPriorityServerID = getHighestPriorityServers(currentServerID, viewMessagesReceived);
+                        if (highestPriorityServerID.equals(currentServerID)){
+                            // If Current Server has the highest priority broadcast coordinator message to others
+                            logger.info("Current server become the leader");
+                            ServerState.getServerStateInstance().setLeaderServerData(currentServer);
+                            MessageTransferService.sendToServersBroadcast(messageHandler.coordinatorMessage()); //broadcast coordinator message
+                        } else {
+                            // Else save the highest priority server as leader
+                            logger.info("Set the leader to server : " + highestPriorityServerID);
+                            ServerData leaderData = ServerState.getServerStateInstance().getServerDataById(highestPriorityServerID);
+                            ServerState.getServerStateInstance().setLeaderServerData(leaderData);
+                        }
                     }
+                    electionInProgress = false;
                 } catch (InterruptedException e) {
                     logger.error("Exception occurred in wait thread");
                     e.printStackTrace();

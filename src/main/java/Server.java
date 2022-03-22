@@ -42,8 +42,8 @@ public class Server {
             // TODO: Refactor following part - Bully Algo.
             // Initialize Bully Algorithm
             FastBullyService.initializeService();
-            ServerData leader = new ServerData("s1", "localhost", 4444, 5555);
-            ServerState.getServerStateInstance().setLeaderServerData(leader);
+            // ServerData leader = new ServerData("s1", "localhost", 4444, 5555);
+            // ServerState.getServerStateInstance().setLeaderServerData(leader);
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
 
