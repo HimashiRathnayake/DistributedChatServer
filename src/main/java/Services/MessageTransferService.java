@@ -49,7 +49,7 @@ public class MessageTransferService {
 //            }
         } catch (IOException e) {
             logger.info("Server is not online, exception occur -  "+e.getMessage());
-            // e.printStackTrace();
+//             e.printStackTrace();
         }
     }
 

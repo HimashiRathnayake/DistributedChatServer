@@ -7,6 +7,8 @@ import Services.MessageTransferService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 
 public class FastBullyService extends Thread{
@@ -37,7 +39,7 @@ public class FastBullyService extends Thread{
         switch (operation) {
             case ("wait") -> {
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(6000);
                     System.out.println(viewMessagesReceived);
                     if (viewMessagesReceived.isEmpty()){
                         logger.info("No view messages received. Server can become the leader");
@@ -84,9 +86,16 @@ public class FastBullyService extends Thread{
                     }
                     case "view" -> {
                         logger.info("Sending View Message");
+
                         ServerData requestServer = ServerState.getServerStateInstance().getServerDataById((String) this.reply.get("serverid"));
                         ArrayList<String> activeServers = new ArrayList<>(); // TODO: get actual active servers.
-                        MessageTransferService.sendToServers(messageHandler.viewMessage(activeServers), requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                        JSONObject response = messageHandler.viewMessage(activeServers);
+                        try {
+                            Thread.sleep(300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
                     }
                 }
             }
