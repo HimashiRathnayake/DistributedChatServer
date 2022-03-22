@@ -8,7 +8,7 @@ public class RequestHandler {
     // list - {“type” : “allrooms”}
     // who
 
-    // createroom - {“type”: createroom, “roomid”: “jokes”, "clientid": clientID, "serverid": "serverid"}
+    // createroom - {“type”: "createroom", “roomid”: “jokes”, "clientid": "clientID", "serverid": "serverid"}
     @SuppressWarnings("unchecked")
     public JSONObject sendCreateRoomResponse(String roomid, String clientID){
         JSONObject request = new JSONObject();
@@ -18,11 +18,23 @@ public class RequestHandler {
         request.put("serverid", System.getProperty("serverID"));
         return request;
     }
-    // joinroom - {"type" : roomroute, "roomid" : ”jokes”}
-    public JSONObject sendJoinRoomResponse(String roomid){
+
+    // joinroom - {"type" : "roomexist", "roomid" : ”jokes”, "clientid": "clientID", "serverid": "serverid"}
+    public JSONObject sendRoomExistResponse(String roomid, String clientID){
         JSONObject request = new JSONObject();
-        request.put("type", "roomroute");
+        request.put("type", "roomexist");
         request.put("roomid", roomid);
+        request.put("clientid", clientID);
+        request.put("serverid", System.getProperty("serverID"));
+        return request;
+    }
+    // joinroom - {"type" : "getroomroute", "roomid" : ”jokes”, "clientid": "clientID", "serverid": "serverid"}
+    public JSONObject sendJoinRoomResponse(String roomid, String clientID){
+        JSONObject request = new JSONObject();
+        request.put("type", "getroomroute");
+        request.put("roomid", roomid);
+        request.put("clientid", clientID);
+        request.put("serverid", System.getProperty("serverID"));
         return request;
     }
 

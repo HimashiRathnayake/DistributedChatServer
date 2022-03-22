@@ -2,6 +2,7 @@ package Services.ChatService;
 
 import Handlers.ChatHandler.*;
 import Models.Client;
+import Models.Server.LeaderState;
 import Models.Server.ServerState;
 import Services.MessageTransferService;
 import org.apache.log4j.Logger;
@@ -74,25 +75,46 @@ public class ChatClientService extends Thread {
                     case "joinroom" -> {
                         logger.info("Received message type joinroom");
                         List<ChatClientService> clientThreads_formerRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-                        Map<String, JSONObject> joinRoomResponses = new JoinRoomHandler(this.clientResponseHandler).joinRoom(client, (String) message.get("roomid"));
+                        Map<String, JSONObject> responses = new JoinRoomHandler(this.clientResponseHandler).joinRoom(client, (String) message.get("roomid"));
                         List<ChatClientService> clientThreads_joinedRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-
-                        if (joinRoomResponses.containsKey("client-only")) {
-                            MessageTransferService.send(this.clientSocket, joinRoomResponses.get("client-only"));
-                        }
-                        if (joinRoomResponses.containsKey("broadcast")) {
-                            MessageTransferService.send(this.clientSocket, joinRoomResponses.get("broadcast"));
-                            MessageTransferService.sendBroadcast(clientThreads_formerRoom, joinRoomResponses.get("broadcast"));
-                            MessageTransferService.sendBroadcast(clientThreads_joinedRoom, joinRoomResponses.get("broadcast"));
+                        if (!responses.containsKey("askedFromLeader")) {
+                            if (responses.containsKey("client-only")) {
+                                MessageTransferService.send(this.clientSocket, responses.get("client-only"));
+                            }
+                            if (responses.containsKey("broadcast-all")) {
+                                MessageTransferService.send(this.clientSocket, responses.get("broadcast-all"));
+                                MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast-all"));
+                                MessageTransferService.sendBroadcast(clientThreads_joinedRoom, responses.get("broadcast-all"));
+                            }
+                            if (responses.containsKey("broadcast-former")) {
+                                MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast-former"));
+                                ServerState.getServerStateInstance().clientServices.get(client.getIdentity()).stop();
+                                ServerState.getServerStateInstance().clientServices.remove(client.getIdentity());
+                            }
                         }
                     }
                     case "movejoin" -> {
                         // TODO: have to check the functionality
                         logger.info("Received message type movejoin");
-                        Map<String, JSONObject> movejoinResponses = new MoveJoinHandler(this.clientResponseHandler).movejoin((String) message.get("former"), (String) message.get("roomid"), (String) message.get("identity"), this.client);
-                        MessageTransferService.send(this.clientSocket, movejoinResponses.get("client-only"));
+                        client = new Client();
+                        String identity = (String) message.get("identity");
+                        client.setIdentity(identity);
+                        client.setServer(System.getProperty("serverID"));
+                        client.setStatus("active");
+                        //System.out.print(ServerState.getServerStateInstance().clients);
+                        ServerState.getServerStateInstance().clients.put(identity, this.client);
+                        //LeaderState.getInstance().globalClients.put(identity, client);
+                        ServerState.getServerStateInstance().clientServices.put(identity, this);
+
+                        Map<String, JSONObject> movejoinResponses = new MoveJoinHandler(this.clientResponseHandler).movejoin((String) message.get("former"), (String) message.get("roomid"), identity, this.client);
                         List<ChatClientService> clientThreads_movejoin = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+                        //System.out.println(this.clientSocket.getOutputStream());
+                        //System.out.println(movejoinResponses.get("client-only"));
+
+                        MessageTransferService.send(this.clientSocket, movejoinResponses.get("client-only"));
+                        MessageTransferService.send(this.clientSocket, movejoinResponses.get("broadcast"));
                         MessageTransferService.sendBroadcast(clientThreads_movejoin, movejoinResponses.get("broadcast"));
+
                     }
                     case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
@@ -128,9 +150,6 @@ public class ChatClientService extends Thread {
                         if (quitResponses.containsKey("client-only")) {
                             MessageTransferService.send(this.clientSocket, quitResponses.get("client-only").get(0));
                         }
-                        // server closes the connection
-                        ServerState.getServerStateInstance().clientServices.remove(this.client.getIdentity());
-                        this.stopThread();
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");

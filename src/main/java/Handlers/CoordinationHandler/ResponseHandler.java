@@ -19,14 +19,26 @@ public class ResponseHandler {
         return newRoom;
     }
 
-    // joinroom - {"type" : roomroute, "roomid": "jokes", "host" : "122.134.2.4", "port" : "4445"}
-    public JSONObject sendJoinRoomServerResponse(String roomid, String host, String port){
-        JSONObject joinRoom = new JSONObject();
-        joinRoom.put("type", "roomroute");
-        joinRoom.put("roomid", roomid);
-        joinRoom.put("host",host);
-        joinRoom.put("port",port);
-        return joinRoom;
+    // joinroom - {"type" : "leaderroomexist", "roomid" : ”jokes”, "exist": "true", "clientid", "clientid"}
+    public JSONObject sendRoomExistResponse(String roomid, String isExist, String clientid){
+        JSONObject request = new JSONObject();
+        request.put("type", "leaderroomexist");
+        request.put("roomid", roomid);
+        request.put("exist", isExist);
+        request.put("clientid",clientid);
+        return request;
+    }
+
+    // joinroom - {"type" : "leaderroomroute", "roomid": "jokes", "exist": "true", "host" : "122.134.2.4", "port" : "4445", "clientid", "clientid"}
+    public JSONObject sendGetRoomRouteResponse(String exist, String roomid, String host, String port, String clientid){
+        JSONObject roomroute = new JSONObject();
+        roomroute.put("type", "leaderroomroute");
+        roomroute.put("roomid", roomid);
+        roomroute.put("exist", exist);
+        roomroute.put("host",host);
+        roomroute.put("port",port);
+        roomroute.put("clientid",clientid);
+        return roomroute;
     }
 
     // movejoin

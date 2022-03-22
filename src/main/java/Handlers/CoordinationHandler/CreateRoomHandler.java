@@ -20,7 +20,7 @@ public class CreateRoomHandler {
     private final ResponseHandler serverResponseHandler = new ResponseHandler();
     private final ClientResponseHandler clientResponseHandler = new ClientResponseHandler();
 
-        public boolean checkRoomIdUnique(String identity){
+    public boolean checkRoomIdUnique(String identity){
 
         boolean isIdentityUnique = true;
         ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
@@ -52,7 +52,6 @@ public class CreateRoomHandler {
         if (checkRoomIdUnique(roomid)) {
             ArrayList<Client> clients = new ArrayList<>();
             Room room = new Room(roomid, serverID, clientID, clients);
-            ServerState.getServerStateInstance().roomList.put(roomid, room);
             LeaderState.getInstance().addRoomToGlobalList(room);
             logger.info("New room creation accepted");
             response = this.serverResponseHandler.sendCreateRoomServerResponse("true", roomid, clientID);

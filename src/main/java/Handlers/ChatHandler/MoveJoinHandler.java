@@ -23,8 +23,6 @@ public class MoveJoinHandler {
         ConcurrentMap<String, Room> roomList = ServerState.getServerStateInstance().getRoomList();
         Room joinRoom;
         if(roomList.containsKey(joinRoomID)){
-//            Room formerRoom = roomList.get(formerRoomID);
-//            formerRoom.removeClient(ClientID);    // client is removed from the former room
             joinRoom= roomList.get(joinRoomID);
         }else{
             logger.error("Join room is not exist and move client to the main hall");
@@ -33,6 +31,7 @@ public class MoveJoinHandler {
         joinRoom.addClient(client);
         JSONObject serverChangedResponse = this.clientResponseHandler.serverChangedResponse();
         JSONObject roomChangedResponse = this.clientResponseHandler.broadCastRoomChange(ClientID,formerRoomID,joinRoom.getRoomID());
+        logger.info("Server Change");
         responses.put("client-only",serverChangedResponse);
         responses.put("broadcast",roomChangedResponse);
         return responses;
