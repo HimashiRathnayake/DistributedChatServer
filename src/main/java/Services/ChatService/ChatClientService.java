@@ -163,7 +163,6 @@ public class ChatClientService extends Thread {
                     }
                 }
             } catch (IOException e) {
-                //TODO: Need to handle Abrupt disconnections by clients
                 logger.info("Abrupt disconnection by client");
                 handleQuit(true);
             } catch (ParseException e) {
