@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import Services.CoordinationService.CoordinationService;
+import Services.CoordinationService.FastBullyService;
 import org.apache.log4j.Logger;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -38,8 +39,11 @@ public class Server {
             Room mainHall = new Room("MainHall-"+serverID, serverID, "", new ArrayList<Client>());
             ServerState.getServerStateInstance().addNewRoom(mainHall);
 
-            ServerData leader = new ServerData("s1", "localhost", 4444, 5555);
-            ServerState.getServerStateInstance().setLeaderServerData(leader);
+            // TODO: Refactor following part - Bully Algo.
+            // Initialize Bully Algorithm
+            FastBullyService.initializeService();
+            // ServerData leader = new ServerData("s1", "localhost", 4444, 5555);
+            // ServerState.getServerStateInstance().setLeaderServerData(leader);
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
 

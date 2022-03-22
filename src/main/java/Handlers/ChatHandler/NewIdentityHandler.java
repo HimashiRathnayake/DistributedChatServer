@@ -32,9 +32,8 @@ public class NewIdentityHandler {
 
     public String checkIdentityUnique(String identity) {
         String isIdentityUnique = "true";
-        ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
         ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
-        if (Objects.equals(currentServer.getServerID(), leaderServer.getServerID())){
+        if (ServerState.getServerStateInstance().isCurrentServerLeader()){
             ConcurrentHashMap<String, Client> clients = LeaderState.getInstance().getGlobalClients();
             for (Iterator<String> it = clients.keys().asIterator(); it.hasNext(); ) {
                 String client = it.next();

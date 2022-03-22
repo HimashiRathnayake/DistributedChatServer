@@ -35,6 +35,30 @@ public class ChatClientService extends Thread {
         this.client = client;
     }
 
+    private void handleQuit(boolean interruption) {
+        List<ChatClientService> clientThreads_quit = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
+        Map<String, ArrayList<JSONObject>> quitResponses = new QuitHandler(this.clientResponseHandler).handleQuit(this.client);
+        if (quitResponses.containsKey("broadcastServers")){
+            MessageTransferService.sendToServersBroadcast(quitResponses.get("broadcastServers").get(0));
+        }
+        if (quitResponses.containsKey("broadcastClients")) {
+            for (JSONObject response : quitResponses.get("broadcastClients")) {
+                MessageTransferService.sendBroadcast(clientThreads_quit, response);
+            }
+        }
+        if (!interruption) {
+            if (quitResponses.containsKey("reply")) {
+                MessageTransferService.send(this.clientSocket, quitResponses.get("reply").get(0));
+            }
+            if (quitResponses.containsKey("client-only")) {
+                MessageTransferService.send(this.clientSocket, quitResponses.get("client-only").get(0));
+            }
+        }
+        // server closes the connection
+        ServerState.getServerStateInstance().clientServices.remove(this.client.getIdentity());
+        this.stopThread();
+    }
+
     public void run() {
         while (running) {
             try {
@@ -134,22 +158,7 @@ public class ChatClientService extends Thread {
                     }
                     case "quit" -> {
                         logger.info("Received message type quit");
-                        List<ChatClientService> clientThreads_quit = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-                        Map<String, ArrayList<JSONObject>> quitResponses = new QuitHandler(this.clientResponseHandler).handleQuit(this.client);
-                        if (quitResponses.containsKey("broadcastServers")){
-                            MessageTransferService.sendToServersBroadcast(quitResponses.get("broadcastServers").get(0));
-                        }
-                        if (quitResponses.containsKey("broadcastClients")) {
-                            for (JSONObject response : quitResponses.get("broadcastClients")) {
-                                MessageTransferService.sendBroadcast(clientThreads_quit, response);
-                            }
-                        }
-                        if (quitResponses.containsKey("reply")) {
-                            MessageTransferService.send(this.clientSocket, quitResponses.get("reply").get(0));
-                        }
-                        if (quitResponses.containsKey("client-only")) {
-                            MessageTransferService.send(this.clientSocket, quitResponses.get("client-only").get(0));
-                        }
+                        handleQuit(false);
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");
@@ -178,10 +187,8 @@ public class ChatClientService extends Thread {
                     }
                 }
             } catch (IOException e) {
-                //TODO: Need to handle Abrupt disconnections by clients
-                logger.info("Exception occurred" + e.getMessage());
-                e.printStackTrace();
-                System.exit(1);
+                logger.info("Abrupt disconnection by client");
+                handleQuit(true);
             } catch (ParseException e) {
                 logger.error("Parse Exception occurred" + e.getMessage());
                 e.printStackTrace();

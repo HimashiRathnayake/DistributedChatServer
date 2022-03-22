@@ -3,6 +3,8 @@ package Services;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
+import Services.CoordinationService.CoordinationService;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.io.DataOutputStream;
@@ -14,16 +16,20 @@ import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 public class MessageTransferService {
-
+    static Logger logger = Logger.getLogger(CoordinationService.class);
     private MessageTransferService(){}
 
-    public static void send(Socket socket, JSONObject message) throws IOException {
-        OutputStream out = socket.getOutputStream();
-        out.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
-        out.flush();
+    public static void send(Socket socket, JSONObject message) {
+        try {
+            OutputStream out = socket.getOutputStream();
+            out.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void sendBroadcast(List<ChatClientService> clientThreads, JSONObject message) throws IOException {
+    public static void sendBroadcast(List<ChatClientService> clientThreads, JSONObject message) {
         for (ChatClientService service : clientThreads) {
             send(service.getClientSocket(), message);
         }
@@ -42,7 +48,8 @@ public class MessageTransferService {
 //                }
 //            }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info("Server is not online, exception occur -  "+e.getMessage());
+//             e.printStackTrace();
         }
     }
 

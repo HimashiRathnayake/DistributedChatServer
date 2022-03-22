@@ -145,6 +145,11 @@ public class CoordinationService extends Thread {
                             MessageTransferService.sendBroadcast(clientThreads_newId, responses.get("broadcast"));
                         }
                     }
+                    default -> {
+                        // Send other cases to FastBully Service to handle
+                        logger.info("Sending to fast bully service");
+                        FastBullyService.receiveBullyMessage(message);
+                    }
                 }
                 this.stopThread(); // Finally, stop the thread as there is no need for these connections to remain active throughout the lifetime of the system
             } catch (IOException | ParseException e) {
