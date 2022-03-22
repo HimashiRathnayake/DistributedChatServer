@@ -1,7 +1,6 @@
 package Services.CoordinationService;
 
-import Handlers.CoordinationHandler.FastBullyHandler.BullyRequestHandler;
-import Handlers.CoordinationHandler.FastBullyHandler.BullyResponseHandler;
+import Handlers.CoordinationHandler.FastBullyHandler;
 import Services.MessageTransferService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -11,8 +10,7 @@ public class FastBullyService extends Thread{
     private static final Logger logger = Logger.getLogger(FastBullyService.class);
     private String operation; // wait or send message
     private String request;
-    private static final BullyRequestHandler requestHandler = new BullyRequestHandler();
-    private static final BullyResponseHandler responseHandler = new BullyResponseHandler();
+    private static final FastBullyHandler messageHandler = new FastBullyHandler();
     private boolean electionInProgress = false;
     private boolean isViewMessageRecieved = false;
 
@@ -72,7 +70,7 @@ public class FastBullyService extends Thread{
         // send iam up message
         this.electionInProgress = true;
         this.isViewMessageRecieved = false;
-        JSONObject iamUpRequest = requestHandler.iamUpRequest();
+        JSONObject iamUpRequest = messageHandler.iamUpMessage();
         MessageTransferService.sendToServersBroadcast(iamUpRequest);
         Thread fastBullyService = new FastBullyService("wait");
         fastBullyService.start();
