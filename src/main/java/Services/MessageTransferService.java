@@ -3,6 +3,8 @@ package Services;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
+import Services.CoordinationService.CoordinationService;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.io.DataOutputStream;
@@ -14,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 public class MessageTransferService {
-
+    static Logger logger = Logger.getLogger(CoordinationService.class);
     private MessageTransferService(){}
 
     public static void send(Socket socket, JSONObject message) {
@@ -46,7 +48,8 @@ public class MessageTransferService {
 //                }
 //            }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Some servers are not online, exception occur -  "+e.getMessage());
+//            e.printStackTrace();
         }
     }
 
@@ -54,6 +57,7 @@ public class MessageTransferService {
         ConcurrentMap<String, ServerData> serverList = ServerState.getServerStateInstance().getServersList();
         ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
         for (ConcurrentMap.Entry<String, ServerData> entry : serverList.entrySet()) {
+            System.out.println(entry.getKey());
             if (!currentServer.getServerID().equals(entry.getKey())) {
                 sendToServers(message, entry.getValue().getServerAddress(), entry.getValue().getCoordinationPort());
             }
