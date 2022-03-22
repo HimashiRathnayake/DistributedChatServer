@@ -1,17 +1,23 @@
 package Handlers.ChatHandler;
 
+import Handlers.CoordinationHandler.RequestHandler;
 import Models.Client;
 import Models.Room;
+import Models.Server.LeaderState;
+import Models.Server.ServerData;
 import Models.Server.ServerState;
+import Services.MessageTransferService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CreateRoomHandler {
 
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
     private final ClientResponseHandler clientResponseHandler;
+    private final RequestHandler serverRequestHandler = new RequestHandler();
 
     public CreateRoomHandler(ClientResponseHandler clientResponseHandler){
         this.clientResponseHandler = clientResponseHandler;
@@ -36,16 +42,30 @@ public class CreateRoomHandler {
         return isIdentityGood;
     }
 
-    public boolean checkRoomIdUnique(String identity){
+    public String checkRoomIdUnique(String identity, String clientID){
 
-        boolean isIdentityUnique = true;
-        // TODO: Check identity from all servers.
-        for (Iterator<String> it = ServerState.getServerStateInstance().roomList.keys().asIterator(); it.hasNext(); ) {
+        String isIdentityUnique = "true";
+        ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
+        ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
+        if (Objects.equals(currentServer.getServerID(), leaderServer.getServerID())){
+            ConcurrentHashMap<String, Room> rooms = LeaderState.getInstance().getGlobalRoomList();
+            for (Iterator<String> it = rooms.keys().asIterator(); it.hasNext(); ) {
+                String room = it.next();
+                if (Objects.equals(room, identity)){
+                    isIdentityUnique = "false";
+                }
+            }
+        } else {
+            JSONObject request = serverRequestHandler.sendCreateRoomResponse(identity, clientID);
+            MessageTransferService.sendToServers(request, leaderServer.getServerAddress(), leaderServer.getCoordinationPort());
+            isIdentityUnique = "askedFromLeader";
+        }
+        /*for (Iterator<String> it = ServerState.getServerStateInstance().roomList.keys().asIterator(); it.hasNext(); ) {
             String room = it.next();
             if (Objects.equals(room, identity)){
                 isIdentityUnique = false;
             }
-        }
+        }*/
         return isIdentityUnique;
     }
 
@@ -61,21 +81,28 @@ public class CreateRoomHandler {
 
     public Map<String, JSONObject> createRoom(Client client, String roomid){
         Map<String, JSONObject> responses = new HashMap<>();
+        boolean checkRoomIdRules = checkRoomIdRules(roomid);
+        boolean checkOwnerUnique = checkOwnerUnique(client.getIdentity());
         ArrayList<Client> clients = new ArrayList<>();
-        if (checkOwnerUnique(client.getIdentity()) && checkRoomIdUnique(roomid)
-                && checkRoomIdRules(roomid)){
-            Room room = new Room(roomid, System.getProperty("serverID"), client.getIdentity(), clients);
-            ServerState.getServerStateInstance().roomList.put(roomid, room);
-            logger.info("New room creation accepted");
-            JSONObject createRoomResponse = this.clientResponseHandler.sendNewRoomResponse(roomid, "true");
-            JSONObject roomChangedResponse = moveToNewRoom(room, client);
-            responses.put("client-only",createRoomResponse);
-            responses.put("broadcast",roomChangedResponse);
-
+        if (checkRoomIdRules && checkOwnerUnique) {
+            String checkRoomIdUnique = checkRoomIdUnique(roomid, client.getIdentity());
+            if (checkRoomIdUnique.equals("true")){
+                Room room = new Room(roomid, System.getProperty("serverID"), client.getIdentity(), clients);
+                ServerState.getServerStateInstance().roomList.put(roomid, room);
+                LeaderState.getInstance().globalRoomList.put(roomid, room);
+                logger.info("New room creation accepted");
+                responses.put("client-only", clientResponseHandler.sendNewRoomResponse(roomid, "true"));
+                responses.put("broadcast", moveToNewRoom(room, client));
+            } else if(checkRoomIdUnique.equals("askedFromLeader")){
+                logger.info("Asked from leader");
+                responses.put("askedFromLeader", null);
+            } else {
+                logger.info("New room creation rejected");
+                responses.put("client-only", clientResponseHandler.sendNewRoomResponse(roomid, "false"));
+            }
         } else {
             logger.info("New room creation rejected");
-            JSONObject createRoomResponse = this.clientResponseHandler.sendNewRoomResponse(roomid, "false");
-            responses.put("client-only",createRoomResponse);
+            responses.put("client-only", clientResponseHandler.sendNewRoomResponse(roomid, "false"));
         }
         return responses;
     }

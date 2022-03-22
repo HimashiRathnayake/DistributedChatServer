@@ -1,5 +1,6 @@
 package Services.CoordinationService;
 
+import Handlers.CoordinationHandler.CreateRoomHandler;
 import Handlers.CoordinationHandler.NewIdentityHandler;
 import Handlers.CoordinationHandler.ResponseHandler;
 import Models.Client;
@@ -47,6 +48,21 @@ public class CoordinationService extends Thread {
                     }
                     case "createroom" -> {
                         logger.info("Received message type createroom");
+                        JSONObject response = new CreateRoomHandler().coordinatorNewRoomIdentity((String) message.get("clientid"), (String) message.get("roomid"), (String) message.get("serverid"));
+                        ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
+                        MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                    }
+                    case "leadercreateroom" -> {
+                        logger.info("Received message type leadercreateroom");
+                        Client client = ServerState.getServerStateInstance().clients.get((String) message.get("clientid"));
+                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get((String) message.get("clientid"));
+                        List<ChatClientService> clientThreads_formerRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(client);
+                        Map<String, JSONObject> responses = new CreateRoomHandler().leaderApprovedNewRoomIdentity((String) message.get("approved"), client, (String) message.get("roomid"));
+                        MessageTransferService.send(chatClientService.getClientSocket(), responses.get("client-only"));
+                        if (responses.containsKey("broadcast")) {
+                            MessageTransferService.send(chatClientService.getClientSocket(), responses.get("broadcast"));
+                            MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast"));
+                        }
                     }
                     case "joinroom" -> {
                         logger.info("Received message type joinroom");

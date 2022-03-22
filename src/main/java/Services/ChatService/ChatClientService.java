@@ -62,11 +62,13 @@ public class ChatClientService extends Thread {
                     case "createroom" -> {
                         logger.info("Received message type createroom");
                         List<ChatClientService> clientThreads_formerRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
-                        Map<String, JSONObject> createRoomResponses = new CreateRoomHandler(this.clientResponseHandler).createRoom(client, (String) message.get("roomid"));
-                        MessageTransferService.send(this.clientSocket, createRoomResponses.get("client-only"));
-                        if (createRoomResponses.containsKey("broadcast")) {
-                            MessageTransferService.send(this.clientSocket, createRoomResponses.get("broadcast"));
-                            MessageTransferService.sendBroadcast(clientThreads_formerRoom, createRoomResponses.get("broadcast"));
+                        Map<String, JSONObject> responses = new CreateRoomHandler(this.clientResponseHandler).createRoom(client, (String) message.get("roomid"));
+                        if (!responses.containsKey("askedFromLeader")) {
+                            MessageTransferService.send(this.clientSocket, responses.get("client-only"));
+                            if (responses.containsKey("broadcast")) {
+                                MessageTransferService.send(this.clientSocket, responses.get("broadcast"));
+                                MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast"));
+                            }
                         }
                     }
                     case "joinroom" -> {
