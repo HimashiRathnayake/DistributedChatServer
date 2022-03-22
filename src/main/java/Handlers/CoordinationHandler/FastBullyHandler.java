@@ -2,6 +2,8 @@ package Handlers.CoordinationHandler;
 
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+
 public class FastBullyHandler {
 
     // {"type" : "iamup", "serverid" : "ServerID"}
@@ -24,7 +26,7 @@ public class FastBullyHandler {
 
     // {"type" : "view", "serverid" : "ServerID", "serverlist" : ["s1", "s2"]}
     @SuppressWarnings("unchecked")
-    public JSONObject viewMessage(String serverList){
+    public JSONObject viewMessage(ArrayList<String> serverList){
         JSONObject message = new JSONObject();
         message.put("type", "view");
         message.put("serverid", System.getProperty("serverID"));
