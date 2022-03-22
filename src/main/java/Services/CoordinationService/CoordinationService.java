@@ -40,7 +40,7 @@ public class CoordinationService extends Thread {
                 BufferedReader in = new BufferedReader(new InputStreamReader(coordinationSocket.getInputStream(), StandardCharsets.UTF_8));
                 JSONObject message = (JSONObject) parser.parse(in.readLine());
                 String type = (String) message.get("type");
-                System.out.println("Receiving: " + message);
+//                System.out.println("Receiving: " + message);
                 switch (type) {
                     case "list" -> {
                         logger.info("Received message type list");
@@ -77,7 +77,7 @@ public class CoordinationService extends Thread {
                     }
                     default -> {
                         // Send other cases to FastBully Service to handle
-                        logger.info("Sending to fast bully service");
+//                        logger.info("Sending to fast bully service");
                         FastBullyService.receiveBullyMessage(message);
                     }
                 }

@@ -12,12 +12,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 public class MessageTransferService {
     static Logger logger = Logger.getLogger(CoordinationService.class);
-    private MessageTransferService(){}
+
+    private MessageTransferService() {
+    }
 
     public static void send(Socket socket, JSONObject message) {
         try {
@@ -36,7 +39,7 @@ public class MessageTransferService {
     }
 
     public static void sendToServers(JSONObject message, String host, int port) {
-        try{
+        try {
             Socket socket = new Socket(host, port);
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
@@ -48,7 +51,7 @@ public class MessageTransferService {
 //                }
 //            }
         } catch (IOException e) {
-            logger.info("Server is not online, exception occur -  "+e.getMessage());
+//            logger.info("Server is not online, exception occur -  " + e.getMessage());
 //             e.printStackTrace();
         }
     }
@@ -60,6 +63,25 @@ public class MessageTransferService {
             if (!currentServer.getServerID().equals(entry.getKey())) {
                 sendToServers(message, entry.getValue().getServerAddress(), entry.getValue().getCoordinationPort());
             }
+        }
+    }
+
+    public static void heartbeatToLeader(JSONObject message, String host, int port) throws IOException {
+        Socket socket = new Socket(host, port);
+        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        dataOutputStream.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
+        dataOutputStream.flush();
+//            while (true){
+//                if(socket.isClosed()){
+//                    socket.close();
+//                    break;
+//                }
+//            }
+    }
+
+    public static void sendToSelectedServersBroadcast(ArrayList<ServerData> servers, JSONObject message) {
+        for (ServerData server : servers) {
+            sendToServers(message, server.getServerAddress(), server.getCoordinationPort());
         }
     }
 }
