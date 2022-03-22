@@ -55,6 +55,10 @@ public class ServerState {
         return leaderServerData;
     }
 
+    public boolean isCurrentServerLeader(){
+        return this.currentServerData.getServerID().equals(this.leaderServerData.getServerID());
+    }
+
     public synchronized ConcurrentMap<String, Room> getRoomList(){
         return roomList;
     }

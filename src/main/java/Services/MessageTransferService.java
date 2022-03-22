@@ -17,13 +17,17 @@ public class MessageTransferService {
 
     private MessageTransferService(){}
 
-    public static void send(Socket socket, JSONObject message) throws IOException {
-        OutputStream out = socket.getOutputStream();
-        out.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
-        out.flush();
+    public static void send(Socket socket, JSONObject message) {
+        try {
+            OutputStream out = socket.getOutputStream();
+            out.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void sendBroadcast(List<ChatClientService> clientThreads, JSONObject message) throws IOException {
+    public static void sendBroadcast(List<ChatClientService> clientThreads, JSONObject message) {
         for (ChatClientService service : clientThreads) {
             send(service.getClientSocket(), message);
         }

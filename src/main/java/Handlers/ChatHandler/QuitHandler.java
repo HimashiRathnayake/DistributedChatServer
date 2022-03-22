@@ -3,6 +3,7 @@ package Handlers.ChatHandler;
 import Handlers.CoordinationHandler.ResponseHandler;
 import Models.Client;
 import Models.Room;
+import Models.Server.LeaderState;
 import Models.Server.ServerState;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -24,6 +25,9 @@ public class QuitHandler {
 
         String clientID = client.getIdentity();
         ServerState.getServerStateInstance().clients.remove(clientID); // remove the client from the client list
+        if (ServerState.getServerStateInstance().isCurrentServerLeader()) {
+            LeaderState.getInstance().globalClients.remove(clientID);
+        }
         Room deleteRoom = ServerState.getServerStateInstance().getOwningRoom(clientID);
         Map<String, ArrayList<JSONObject>> responses = new HashMap<>();
         ArrayList<JSONObject> broadcastResponse = new ArrayList<>();
