@@ -60,4 +60,13 @@ public class FastBullyHandler {
         return message;
     }
 
+    //   {"type" : "heartbeat", "serverid" : "ServerID"}
+    @SuppressWarnings("unchecked")
+    public JSONObject heartBeatMessage(){
+        JSONObject message = new JSONObject();
+        message.put("type", "heartbeat");
+        message.put("serverid", System.getProperty("serverID"));
+        return message;
+    }
+
 }
