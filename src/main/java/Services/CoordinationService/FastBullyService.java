@@ -12,16 +12,20 @@ import java.util.ArrayList;
 public class FastBullyService extends Thread{
 
     private static final Logger logger = Logger.getLogger(FastBullyService.class);
-    private String operation; // wait or send message
+    private final String operation; // wait or send message
     private String request;
     private static final FastBullyHandler messageHandler = new FastBullyHandler();
     private static boolean electionInProgress = false;
     private static ArrayList<JSONObject> viewMessagesReceived;
-    private static JSONObject reply;
+    private JSONObject reply;
 
     public FastBullyService(String operation, String request){
         this.operation = operation;
         this.request = request;
+    }
+
+    public void setReply(JSONObject reply) {
+        this.reply = reply;
     }
 
     public FastBullyService(String operation) {
@@ -77,9 +81,9 @@ public class FastBullyService extends Thread{
                         logger.info("Sending Answer message");
                     }
                     case "view" -> {
-                        ServerData sender = ServerState.getServerStateInstance().getServerDataById((String) reply.get("serverid"));
+                        ServerData requestServer = ServerState.getServerStateInstance().getServerDataById((String) this.reply.get("serverid"));
                         ArrayList<String> activeServers = new ArrayList<>(); // TODO: get actual active servers.
-                        System.out.println(sender.getServerAddress() + " " + sender.getCoordinationPort());
+                        System.out.println(requestServer.getServerAddress() + " " + requestServer.getCoordinationPort());
 //                        MessageTransferService.sendToServers(messageHandler.viewMessage(activeServers), sender.getServerAddress(), sender.getCoordinationPort());
                     }
                 }
@@ -93,8 +97,8 @@ public class FastBullyService extends Thread{
         switch (type) {
             case "iamup" -> {
                 logger.info("IAM UP message Received");
-                reply = response;
                 FastBullyService fastBullyService = new FastBullyService("send", "view");
+                fastBullyService.setReply(response);
                 fastBullyService.start();
             }
             case "election" -> {
