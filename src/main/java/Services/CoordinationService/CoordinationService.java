@@ -77,6 +77,7 @@ public class CoordinationService extends Thread {
                     }
                     default -> {
                         // Send other cases to FastBully Service to handle
+                        logger.info("Sending to fast bully service");
                         FastBullyService.receiveBullyMessage(message);
                     }
                 }

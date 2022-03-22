@@ -37,7 +37,8 @@ public class FastBullyService extends Thread{
         switch (operation) {
             case ("wait") -> {
                 try {
-                    Thread.sleep(4500);
+                    Thread.sleep(3000);
+                    System.out.println(viewMessagesReceived);
                     if (viewMessagesReceived.isEmpty()){
                         logger.info("No view messages received. Server can become the leader");
                         electionInProgress = false;
@@ -64,27 +65,27 @@ public class FastBullyService extends Thread{
                         logger.info("Sending IAM UP message");
                         electionInProgress = true;
                         viewMessagesReceived = new ArrayList<JSONObject>();
-//                        MessageTransferService.sendToServersBroadcast(messageHandler.iamUpMessage());
-//                        Thread fastBullyService = new FastBullyService("wait");
-//                        fastBullyService.start();
+                        MessageTransferService.sendToServersBroadcast(messageHandler.iamUpMessage());
+                        Thread fastBullyService = new FastBullyService("wait");
+                        fastBullyService.start();
                     }
                     case "election" -> {
-                        logger.info("Sending Election message");
+                        logger.info("Sending Election Message");
                     }
                     case "nomination" -> {
-                        logger.info("Sending Nomination message");
+                        logger.info("Sending Nomination Message");
                     }
                     case "coordinator" -> {
-                        logger.info("Sending Coordinator message");
+                        logger.info("Sending Coordinator Message");
                     }
                     case "answer" -> {
-                        logger.info("Sending Answer message");
+                        logger.info("Sending Answer Message");
                     }
                     case "view" -> {
+                        logger.info("Sending View Message");
                         ServerData requestServer = ServerState.getServerStateInstance().getServerDataById((String) this.reply.get("serverid"));
                         ArrayList<String> activeServers = new ArrayList<>(); // TODO: get actual active servers.
-                        System.out.println(requestServer.getServerAddress() + " " + requestServer.getCoordinationPort());
-//                        MessageTransferService.sendToServers(messageHandler.viewMessage(activeServers), sender.getServerAddress(), sender.getCoordinationPort());
+                        MessageTransferService.sendToServers(messageHandler.viewMessage(activeServers), requestServer.getServerAddress(), requestServer.getCoordinationPort());
                     }
                 }
             }

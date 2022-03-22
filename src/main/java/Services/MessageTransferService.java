@@ -48,8 +48,8 @@ public class MessageTransferService {
 //                }
 //            }
         } catch (IOException e) {
-            logger.error("Some servers are not online, exception occur -  "+e.getMessage());
-//            e.printStackTrace();
+            logger.info("Server is not online, exception occur -  "+e.getMessage());
+            // e.printStackTrace();
         }
     }
 
@@ -57,7 +57,6 @@ public class MessageTransferService {
         ConcurrentMap<String, ServerData> serverList = ServerState.getServerStateInstance().getServersList();
         ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
         for (ConcurrentMap.Entry<String, ServerData> entry : serverList.entrySet()) {
-            System.out.println(entry.getKey());
             if (!currentServer.getServerID().equals(entry.getKey())) {
                 sendToServers(message, entry.getValue().getServerAddress(), entry.getValue().getCoordinationPort());
             }
