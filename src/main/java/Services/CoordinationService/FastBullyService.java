@@ -251,7 +251,7 @@ public class FastBullyService extends Thread {
                         ServerData requestServer = ServerState.getServerStateInstance().getServerDataById((String) this.reply.get("serverid"));
                         MessageTransferService.sendToServers(messageHandler.answerMessage(), requestServer.getServerAddress(), requestServer.getCoordinationPort());
                         FastBullyService fastBullyService = new FastBullyService("wait", "nominationCoordinationWait");
-                        start();
+                        fastBullyService.start();
                     }
                     case "view" -> {
                         logger.info("Sending View Message");
