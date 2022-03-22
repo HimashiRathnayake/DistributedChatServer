@@ -8,8 +8,35 @@ public class RequestHandler {
     // list - {“type” : “allrooms”}
     // who
 
-    // createroom - {“type”: createroom, “roomid”: “jokes”}
-    // joinroom - {"type" : roomroute, "roomid" : ”jokes”}
+    // createroom - {“type”: "createroom", “roomid”: “jokes”, "clientid": "clientID", "serverid": "serverid"}
+    @SuppressWarnings("unchecked")
+    public JSONObject sendCreateRoomResponse(String roomid, String clientID){
+        JSONObject request = new JSONObject();
+        request.put("type", "createroom");
+        request.put("roomid", roomid);
+        request.put("clientid", clientID);
+        request.put("serverid", System.getProperty("serverID"));
+        return request;
+    }
+
+    // joinroom - {"type" : "roomexist", "roomid" : ”jokes”, "clientid": "clientID", "serverid": "serverid"}
+    public JSONObject sendRoomExistResponse(String roomid, String clientID){
+        JSONObject request = new JSONObject();
+        request.put("type", "roomexist");
+        request.put("roomid", roomid);
+        request.put("clientid", clientID);
+        request.put("serverid", System.getProperty("serverID"));
+        return request;
+    }
+    // joinroom - {"type" : "getroomroute", "roomid" : ”jokes”, "clientid": "clientID", "serverid": "serverid"}
+    public JSONObject sendJoinRoomResponse(String roomid, String clientID){
+        JSONObject request = new JSONObject();
+        request.put("type", "getroomroute");
+        request.put("roomid", roomid);
+        request.put("clientid", clientID);
+        request.put("serverid", System.getProperty("serverID"));
+        return request;
+    }
 
     // movejoin
     // deleteroom - {"type" : "deleteroom", "serverid" : "s1", "roomid" : "jokes"}

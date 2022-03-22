@@ -28,4 +28,7 @@ public class LeaderState {
     public ConcurrentHashMap<String, Room> getGlobalRoomList() {
         return globalRoomList;
     }
+    public void addRoomToGlobalList(Room room){
+        this.globalRoomList.put(room.getRoomID(),room);
+    }
 }
