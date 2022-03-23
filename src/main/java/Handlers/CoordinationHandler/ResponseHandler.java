@@ -2,28 +2,10 @@ package Handlers.CoordinationHandler;
 
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-
 public class ResponseHandler {
     // Handle Responses From Leader
 
     // list - {"type" : allrooms, "allrooms": ["jokes", "room1"}
-    @SuppressWarnings("unchecked")
-    public JSONObject createAllRoomsListResponse(ArrayList<String> allrooms){
-        JSONObject allRoomsRequest = new JSONObject();
-        allRoomsRequest.put("type", "allrooms");
-        allRoomsRequest.put("allrooms", allrooms);
-        return allRoomsRequest;
-    }
-
-    @SuppressWarnings("unchecked")
-    public JSONObject createAllRoomsListResponseFromLeader(ArrayList<String> allrooms, String clientID){
-        JSONObject allRoomsRequest = new JSONObject();
-        allRoomsRequest.put("type", "leaderallrooms");
-        allRoomsRequest.put("allrooms", allrooms);
-        allRoomsRequest.put("clientid", clientID);
-        return allRoomsRequest;
-    }
     // who
 
     // createroom - {"type": "leadercreateroom", "approved": "true", "roomid": "roomid", "clientid", "clientid"}
@@ -38,7 +20,6 @@ public class ResponseHandler {
     }
 
     // joinroom - {"type" : "leaderroomexist", "roomid" : ”jokes”, "exist": "true", "clientid", "clientid"}
-    @SuppressWarnings("unchecked")
     public JSONObject sendRoomExistResponse(String roomid, String isExist, String clientid){
         JSONObject request = new JSONObject();
         request.put("type", "leaderroomexist");
@@ -49,7 +30,6 @@ public class ResponseHandler {
     }
 
     // joinroom - {"type" : "leaderroomroute", "roomid": "jokes", "exist": "true", "host" : "122.134.2.4", "port" : "4445", "clientid", "clientid"}
-    @SuppressWarnings("unchecked")
     public JSONObject sendGetRoomRouteResponse(String exist, String roomid, String host, String port, String clientid){
         JSONObject roomroute = new JSONObject();
         roomroute.put("type", "leaderroomroute");
