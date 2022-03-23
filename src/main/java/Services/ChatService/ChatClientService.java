@@ -164,6 +164,11 @@ public class ChatClientService extends Thread {
                                 MessageTransferService.sendBroadcast(clientThreads_deleteRoom, deleteResponse);
                             }
                         }
+                        if(deleteRoomResponses.containsKey("gossip")){
+                            JSONObject gossipMsg = deleteRoomResponses.get("gossip").get(0);
+                            Thread gossipService = new GossipService("send", "gossiproom", gossipMsg);
+                            gossipService.start();
+                        }
                         MessageTransferService.send(this.clientSocket, deleteRoomResponses.get("client-only").get(0));
                     }
                     case "quit" -> {
