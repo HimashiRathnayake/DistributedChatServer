@@ -9,7 +9,7 @@ public class ResponseHandler {
 
     // list - {"type" : allrooms, "allrooms": ["jokes", "room1"}
     @SuppressWarnings("unchecked")
-    public JSONObject createAllRoomsListResponse(ArrayList<String> allrooms){
+    public JSONObject createAllRoomsListResponse(Object allrooms){
         JSONObject allRoomsRequest = new JSONObject();
         allRoomsRequest.put("type", "allrooms");
         allRoomsRequest.put("allrooms", allrooms);
