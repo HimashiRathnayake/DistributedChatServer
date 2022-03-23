@@ -1,9 +1,11 @@
 package Services.CoordinationService;
 
+import Handlers.CoordinationHandler.CreateRoomHandler;
+import Handlers.CoordinationHandler.JoinRoomHandler;
 import Handlers.CoordinationHandler.NewIdentityHandler;
 import Handlers.CoordinationHandler.ResponseHandler;
-import Handlers.CoordinationHandler.RoomListHandler;
 import Models.Client;
+import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
@@ -16,7 +18,6 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,24 +43,81 @@ public class CoordinationService extends Thread {
                 BufferedReader in = new BufferedReader(new InputStreamReader(coordinationSocket.getInputStream(), StandardCharsets.UTF_8));
                 JSONObject message = (JSONObject) parser.parse(in.readLine());
                 String type = (String) message.get("type");
-                System.out.println("Receiving: " + message);
-
+//                System.out.println("Receiving: " + message);
                 switch (type) {
-                    case "allrooms" -> {
-                        JSONObject response = new RoomListHandler().coordinatorRoomList((String) message.get("clientid"));
-                        ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
-                        MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                    case "list" -> {
                         logger.info("Received message type list");
                     }
-                    case "leaderallrooms" -> {
-                        JSONObject response = new ResponseHandler().createAllRoomsListResponse((ArrayList<String>) message.get("allrooms"));
-                        logger.info(response);
-                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get(message.get("clientid"));
-                        MessageTransferService.send(chatClientService.getClientSocket(), response);
-                    }
-
                     case "createroom" -> {
                         logger.info("Received message type createroom");
+                        JSONObject response = new CreateRoomHandler().coordinatorNewRoomIdentity((String) message.get("clientid"), (String) message.get("roomid"), (String) message.get("serverid"));
+                        ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
+                        MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                    }
+                    case "leadercreateroom" -> {
+                        logger.info("Received message type leadercreateroom");
+                        Client client = ServerState.getServerStateInstance().clients.get((String) message.get("clientid"));
+                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get((String) message.get("clientid"));
+                        List<ChatClientService> clientThreads_formerRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(client);
+                        Map<String, JSONObject> responses = new CreateRoomHandler().leaderApprovedNewRoomIdentity((String) message.get("approved"), client, (String) message.get("roomid"));
+                        MessageTransferService.send(chatClientService.getClientSocket(), responses.get("client-only"));
+                        if (responses.containsKey("broadcast")) {
+                            MessageTransferService.send(chatClientService.getClientSocket(), responses.get("broadcast"));
+                            MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast"));
+                        }
+                    }
+                    case "roomexist" -> {
+                        logger.info("Received message type roomexist");
+                        JSONObject response = new JoinRoomHandler().coordinatorRoomExist((String) message.get("clientid"), (String) message.get("roomid"));
+                        ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
+                        MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                    }
+                    case "leaderroomexist" -> {
+                        logger.info("Received message type leaderroomexist");
+                        Client client = ServerState.getServerStateInstance().clients.get((String) message.get("clientid"));
+                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get((String) message.get("clientid"));
+                        List<ChatClientService> clientThreads_formerRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(client);
+                        Map<String, JSONObject> responses = new JoinRoomHandler().leaderApprovedRoomExist((String) message.get("exist"), client, (String) message.get("roomid"));
+                        List<ChatClientService> clientThreads_joinedRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(client);
+
+                        if (!responses.containsKey("askedFromLeader")) {
+                            if (responses.containsKey("client-only")) {
+                                MessageTransferService.send(chatClientService.getClientSocket(), responses.get("client-only"));
+                            }
+                            if (responses.containsKey("broadcast-all")) {
+                                MessageTransferService.send(chatClientService.getClientSocket(), responses.get("broadcast-all"));
+                                MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast-all"));
+                                MessageTransferService.sendBroadcast(clientThreads_joinedRoom, responses.get("broadcast-all"));
+                            }
+                            if (responses.containsKey("broadcast-former")) {
+                                MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast-former"));
+                                ServerState.getServerStateInstance().clientServices.get(client.getIdentity()).stop();
+                                ServerState.getServerStateInstance().clientServices.remove(client.getIdentity());
+                            }
+                        }
+
+                    }
+                    case "getroomroute" -> {
+                        logger.info("Received message type getroomroute");
+                        JSONObject response = new JoinRoomHandler().coordinatorRoomRoute((String) message.get("clientid"), (String) message.get("roomid"));
+                        ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
+                        MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                    }
+                    case "leaderroomroute" -> {
+                        logger.info("Received message type leaderroomroute");
+                        Client client = ServerState.getServerStateInstance().clients.get((String) message.get("clientid"));
+                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get((String) message.get("clientid"));
+                        List<ChatClientService> clientThreads_formerRoom = ServerState.getServerStateInstance().getClientServicesInRoomByClient(client);
+                        Map<String, JSONObject> responses = new JoinRoomHandler().leaderApprovedRoomRoute((String) message.get("exist"), client, (String) message.get("roomid"), (String) message.get("host"), (String) message.get("port"));
+
+                        if (responses.containsKey("client-only")) {
+                            MessageTransferService.send(chatClientService.getClientSocket(), responses.get("client-only"));
+                        }
+                        if (responses.containsKey("broadcast-former")) {
+                            MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast-former"));
+                            ServerState.getServerStateInstance().clientServices.get(client.getIdentity()).stop();
+                            ServerState.getServerStateInstance().clientServices.remove(client.getIdentity());
+                        }
                     }
                     case "joinroom" -> {
                         logger.info("Received message type joinroom");
@@ -67,6 +125,11 @@ public class CoordinationService extends Thread {
                     case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
                         // TODO: have to do something when resceive deleteroom broad cast message
+                    }
+                    case "quit" -> {
+                        logger.info("Received message type quit");
+                        LeaderState.getInstance().globalClients.remove((String) message.get("identity"));
+                        //TODO: Gossip to others.
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");
@@ -90,7 +153,7 @@ public class CoordinationService extends Thread {
                     }
                     default -> {
                         // Send other cases to FastBully Service to handle
-                        logger.info("Sending to fast bully service");
+//                        logger.info("Sending to fast bully service");
                         FastBullyService.receiveBullyMessage(message);
                     }
                 }
