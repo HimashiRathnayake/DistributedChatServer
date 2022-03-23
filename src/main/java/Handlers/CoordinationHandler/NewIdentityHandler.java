@@ -20,6 +20,7 @@ public class NewIdentityHandler {
     private final RequestHandler serverRequestHandler = new RequestHandler();
     private final ResponseHandler serverResponseHandler = new ResponseHandler();
     private final ClientResponseHandler clientResponseHandler = new ClientResponseHandler();
+    private final GossipHandler gossipHandler = new GossipHandler();
 
     public NewIdentityHandler() {
     }
@@ -40,7 +41,9 @@ public class NewIdentityHandler {
         return isIdentityUnique;
     }
 
-    public JSONObject coordinatorNewClientIdentity(Client client, String identity, String serverID) {
+    //public JSONObject coordinatorNewClientIdentity(Client client, String identity, String serverID) {
+    public Map<String, JSONObject> coordinatorNewClientIdentity(Client client, String identity, String serverID) {
+        Map<String, JSONObject> responses = new HashMap<>();
         JSONObject response;
         if (checkIdentityUnique(identity)) {
             client.setIdentity(identity);
@@ -49,11 +52,15 @@ public class NewIdentityHandler {
             LeaderState.getInstance().addClientToGlobalList(client);
             logger.info("New identity creation accepted");
             response = this.serverResponseHandler.sendNewIdentityServerResponse("true", identity);
+            JSONObject gossipMsg = this.gossipHandler.gossipNewIdentity(serverID, identity);
+            responses.put("response", response);
+            responses.put("gossip", gossipMsg);
         } else {
             logger.info("New identity creation rejected");
             response = this.serverResponseHandler.sendNewIdentityServerResponse("false", identity);
+            responses.put("response", response);
         }
-        return response;
+        return responses;
     }
     public JSONObject moveToMainHall(Client client){
         JSONObject response;

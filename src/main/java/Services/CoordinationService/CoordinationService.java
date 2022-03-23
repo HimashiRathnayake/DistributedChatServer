@@ -1,5 +1,8 @@
 package Services.CoordinationService;
 
+import Handlers.CoordinationHandler.*;
+import Models.Client;
+import Models.Room;
 import Handlers.ChatHandler.ClientResponseHandler;
 import Handlers.CoordinationHandler.*;
 import Models.Client;
@@ -19,12 +22,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class CoordinationService extends Thread {
     private final Socket coordinationSocket;
     Logger logger = Logger.getLogger(CoordinationService.class);
     private final JSONParser parser = new JSONParser();
     private boolean running = true;
+    private final ResponseHandler serverResponseHandler = new ResponseHandler();
+    private final GossipHandler gossipHandler = new GossipHandler();
 
     public CoordinationService(Socket coordinationSocket) {
         this.coordinationSocket = coordinationSocket;
@@ -142,9 +149,16 @@ public class CoordinationService extends Thread {
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");
                         Client client = new Client();
-                        JSONObject response = new NewIdentityHandler().coordinatorNewClientIdentity(client, (String) message.get("identity"), (String) message.get("serverid"));
+                        Map<String, JSONObject> responses = new NewIdentityHandler().coordinatorNewClientIdentity(client, (String) message.get("identity"), (String) message.get("serverid"));
+                        JSONObject response = responses.get("response");
+                        //JSONObject response = new NewIdentityHandler().coordinatorNewClientIdentity(client, (String) message.get("identity"), (String) message.get("serverid"));
                         ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
                         MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                        if (responses.containsKey("gossip")) {
+                            Thread gossipService = new GossipService("send", "gossipnewidentity", responses.get("gossip"));
+                            gossipService.start();
+                        }
+
                     }
                     case "leadernewidentity" -> {
                         logger.info("Received message type leadernewidentity");
@@ -158,6 +172,55 @@ public class CoordinationService extends Thread {
                             MessageTransferService.send(chatClientService.getClientSocket(), responses.get("broadcast"));
                             MessageTransferService.sendBroadcast(clientThreads_newId, responses.get("broadcast"));
                         }
+                    }
+                    case "pushgossipidentity" -> {
+                        logger.info("Received message type pushgossipidentity");
+                        long gossiprounds = (long) message.get("rounds");
+                        ServerState.getServerStateInstance().setIsIgnorant(false);
+                        ServerState.getServerStateInstance().setGlobalClientIDs((ArrayList<String>) message.get("clientids"));
+                        if (gossiprounds < ServerState.getServerStateInstance().getInitialRounds()){
+                            Thread gossipService = new GossipService("push", "pushgossipidentity", message);
+                            gossipService.start();
+                        } else {
+                            System.out.println("Gossip rounds exceed");
+                            //ServerData richneighbour = ServerState.getServerStateInstance().getRichNeighborData();
+                            JSONObject msg = new GossipHandler().roundExceed("identity");
+
+                            for (ConcurrentMap.Entry<String, ServerData> entry : ServerState.getServerStateInstance().getServersList().entrySet()) {
+                                if (!entry.getKey().equals(message.get("serverid"))) {
+                                    MessageTransferService.sendToServers(msg, entry.getValue().getServerAddress(), entry.getValue().getCoordinationPort());
+                                }
+                            }
+                        }
+                    }
+                    case "roundexceed" -> {
+                        logger.info("Received message type roundexceed");
+                        if (ServerState.getServerStateInstance().getIsIgnorant()){
+                            String msgtype = (String) message.get("messagetype");
+                            String host = ServerState.getServerStateInstance().getCurrentServerData().getServerAddress();
+                            String port = Integer.toString(ServerState.getServerStateInstance().getCurrentServerData().getCoordinationPort());
+                            switch (msgtype) {
+                                case "identity" -> {
+                                    JSONObject msg = new GossipHandler().pullGossip("pullgossipidentity", host, port);
+                                    ServerData richneighbour = ServerState.getServerStateInstance().getRichNeighborData();
+                                    MessageTransferService.sendToServers(msg, richneighbour.getServerAddress(), richneighbour.getCoordinationPort());
+                                }
+                            }
+                        }
+                    }
+                    case "pullgossip" -> {
+                        logger.info("Received message type pullgossip");
+                        if (!ServerState.getServerStateInstance().getIsIgnorant()){
+                            String pulltype = (String) message.get("pulltype");
+                            Thread gossipService = new GossipService("pull", pulltype, message);
+                            gossipService.start();
+                        }
+                        //TODO: else
+                    }
+                    case "pullupdate" -> {
+                        logger.info("Received message type pullupdate");
+                        ServerState.getServerStateInstance().setIsIgnorant(false);
+                        //ServerState.getServerStateInstance().setGlobalClients((ConcurrentHashMap<String, Client>) message.get("updatedlist"));
                     }
                     default -> {
                         // Send other cases to FastBully Service to handle

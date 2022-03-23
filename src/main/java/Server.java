@@ -11,6 +11,7 @@ import java.util.Set;
 
 import Services.CoordinationService.CoordinationService;
 import Services.CoordinationService.FastBullyService;
+import Services.CoordinationService.GossipService;
 import org.apache.log4j.Logger;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -40,6 +41,8 @@ public class Server {
 
             // Initialize Bully Algorithm
             FastBullyService.initializeService();
+
+            GossipService.initializeService();
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
 
