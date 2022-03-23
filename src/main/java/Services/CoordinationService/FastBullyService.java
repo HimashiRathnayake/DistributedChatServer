@@ -126,14 +126,12 @@ public class FastBullyService extends Thread {
                                 ServerState.getServerStateInstance().setLeaderServerData(currentServer);
                             } else {
                                 logger.info("View messages received.");
-                                // TODO: Compare view messages and update
                                 // Check highest priority server from views
                                 String highestPriorityServerID = getHighestPriorityServersByID(currentServerID, viewMessagesReceived);
                                 if (highestPriorityServerID.equals(currentServerID)) {
                                     // If Current Server has the highest priority broadcast coordinator message to others
                                     logger.info("Current server become the leader and sending coordinator message");
                                     ServerState.getServerStateInstance().setLeaderServerData(currentServer);
-                                    //TODO: check this coordinator message sending part
                                     MessageTransferService.sendToServersBroadcast(messageHandler.coordinatorMessage()); //broadcast coordinator message
                                 } else {
                                     // Else save the highest priority server as leader
@@ -276,7 +274,7 @@ public class FastBullyService extends Thread {
                     case "view" -> {
                         logger.info("Sending View Message");
                         ServerData requestServer = ServerState.getServerStateInstance().getServerDataById((String) this.reply.get("serverid"));
-                        ArrayList<String> activeServers = new ArrayList<>(); // TODO: get actual active servers.
+                        ArrayList<String> activeServers = new ArrayList<>(); // TO DO: get actual active servers.
                         JSONObject response = messageHandler.viewMessage(activeServers);
                         try {
                             Thread.sleep(300);

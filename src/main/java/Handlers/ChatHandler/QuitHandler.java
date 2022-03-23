@@ -1,5 +1,6 @@
 package Handlers.ChatHandler;
 
+import Handlers.CoordinationHandler.GossipHandler;
 import Handlers.CoordinationHandler.RequestHandler;
 import Handlers.CoordinationHandler.ResponseHandler;
 import Models.Client;
@@ -20,6 +21,7 @@ public class QuitHandler {
     private final ClientResponseHandler clientResponseHandler;
     private final ResponseHandler serverResponseHandler = new ResponseHandler();
     private final RequestHandler serverRequestHandler = new RequestHandler();
+    private final GossipHandler gossipHandler = new GossipHandler();
 
     public QuitHandler(ClientResponseHandler clientResponseHandler) {
         this.clientResponseHandler = clientResponseHandler;
@@ -27,21 +29,24 @@ public class QuitHandler {
 
     public Map<String, ArrayList<JSONObject>> handleQuit(Client client) {
 
-        String clientID = client.getIdentity();
-        ServerState.getServerStateInstance().clients.remove(clientID); // remove the client from the client list
-        if (ServerState.getServerStateInstance().isCurrentServerLeader()) {
-            LeaderState.getInstance().globalClients.remove(clientID);
-        } else {
-            ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
-            MessageTransferService.sendToServers(serverRequestHandler.sendQuitClientResponse(clientID), leaderServer.getServerAddress(), leaderServer.getCoordinationPort());
-        }
-        Room deleteRoom = ServerState.getServerStateInstance().getOwningRoom(clientID);
         Map<String, ArrayList<JSONObject>> responses = new HashMap<>();
         ArrayList<JSONObject> broadcastResponse = new ArrayList<>();
         ArrayList<JSONObject> clientOnlyResponse = new ArrayList<>();
         ArrayList<JSONObject> replyResponse = new ArrayList<>();
         ArrayList<JSONObject> broadcastServerResponse = new ArrayList<>();
-
+        ArrayList<JSONObject> gossipResponse = new ArrayList<>();
+        String clientID = client.getIdentity();
+        ServerState.getServerStateInstance().clients.remove(clientID); // remove the client from the client list
+        if (ServerState.getServerStateInstance().isCurrentServerLeader()) {
+            LeaderState.getInstance().globalClients.remove(clientID);
+            JSONObject gossipMsg = this.gossipHandler.gossip("gossipidentity", System.getProperty("serverID"), LeaderState.getInstance().globalClients);
+            gossipResponse.add(gossipMsg);
+            responses.put("gossip", gossipResponse);
+        } else {
+            ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
+            MessageTransferService.sendToServers(serverRequestHandler.sendQuitClientResponse(clientID), leaderServer.getServerAddress(), leaderServer.getCoordinationPort());
+        }
+        Room deleteRoom = ServerState.getServerStateInstance().getOwningRoom(clientID);
         if (deleteRoom == null){
             String formerRoom = ServerState.getServerStateInstance().removeClientFromRoomWithFormerRoom(client); // delete client from room
             clientOnlyResponse.add(this.clientResponseHandler.broadCastRoomChange(clientID, formerRoom, ""));

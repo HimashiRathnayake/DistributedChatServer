@@ -38,6 +38,10 @@ public class ChatClientService extends Thread {
     private void handleQuit(boolean interruption) {
         List<ChatClientService> clientThreads_quit = ServerState.getServerStateInstance().getClientServicesInRoomByClient(this.client);
         Map<String, ArrayList<JSONObject>> quitResponses = new QuitHandler(this.clientResponseHandler).handleQuit(this.client);
+        if (quitResponses.containsKey("gossip")){
+            Thread gossipService = new GossipService("send", "gossipidentity", quitResponses.get("gossip").get(0));
+            gossipService.start();
+        }
         if (quitResponses.containsKey("broadcastServers")){
             MessageTransferService.sendToServersBroadcast(quitResponses.get("broadcastServers").get(0));
         }
@@ -121,7 +125,6 @@ public class ChatClientService extends Thread {
                         }
                     }
                     case "movejoin" -> {
-                        // TODO: have to check the functionality
                         logger.info("Received message type movejoin");
                         client = new Client();
                         String identity = (String) message.get("identity");

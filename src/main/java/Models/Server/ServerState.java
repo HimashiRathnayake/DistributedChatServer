@@ -89,7 +89,20 @@ public class ServerState {
     }
 
     public void setLeaderServerData(ServerData leaderServerData) {
+        String prevLeaderID = leaderServerData.getServerID();
         this.leaderServerData = leaderServerData;
+        if (prevLeaderID.equals(currentServerData.getServerID())){
+            if(!globalClientId.isEmpty()) {
+                for (String clientID: globalClientId){
+                    Client client = new Client();
+                    client.setIdentity(clientID);
+                    LeaderState.getInstance().globalClients.put(clientID, client);
+                }
+            }
+            if(!globalRoomList.isEmpty()){
+                System.out.println(this.globalRoomList);
+            }
+        }
     }
 
     public void setRichNeighborData(ServerData richNeighborData) {

@@ -2,10 +2,7 @@ package Services.CoordinationService;
 
 import Handlers.CoordinationHandler.*;
 import Models.Client;
-import Models.Room;
 import Handlers.ChatHandler.ClientResponseHandler;
-import Handlers.CoordinationHandler.*;
-import Models.Client;
 import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
@@ -23,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class CoordinationService extends Thread {
@@ -145,7 +141,9 @@ public class CoordinationService extends Thread {
                     case "quit" -> {
                         logger.info("Received message type quit");
                         LeaderState.getInstance().globalClients.remove((String) message.get("identity"));
-                        //TODO: Gossip to others.
+                        JSONObject gossipMsg = this.gossipHandler.gossip("gossipidentity", System.getProperty("serverID"), LeaderState.getInstance().globalClients);
+                        Thread gossipService = new GossipService("send", "gossipidentity", gossipMsg);
+                        gossipService.start();
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");
