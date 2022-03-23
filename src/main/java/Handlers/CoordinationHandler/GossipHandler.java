@@ -1,6 +1,7 @@
 package Handlers.CoordinationHandler;
 
 import Models.Client;
+import Models.Room;
 import Models.Server.ServerState;
 import org.json.simple.JSONObject;
 
@@ -19,12 +20,31 @@ public class GossipHandler {
         return gossip;
     }
 
+    // {"type" : "gossipnewidentity", "serverid" : "ServerID", "updatedlist": []}
+    public JSONObject gossipRoom(String type, String serverid, ConcurrentHashMap<String, Room> globalRooms){
+        JSONObject gossip = new JSONObject();
+        gossip.put("type", type);
+        gossip.put("serverid", serverid);
+        gossip.put("updatedlist", globalRooms);
+        return gossip;
+    }
+
     // {"type" : "pushgossipnewidentity", "serverid" : "ServerID", "updatedlist": "", "rounds": 1}
     public JSONObject pushgossip(String type, String serverid, ArrayList<String> clientids, int rounds){
         JSONObject gossip = new JSONObject();
         gossip.put("type", type);
         gossip.put("serverid", serverid);
         gossip.put("clientids", clientids);
+        gossip.put("rounds", rounds);
+        return gossip;
+    }
+
+    // {"type" : "pushgossipnewidentity", "serverid" : "ServerID", "updatedlist": "", "rounds": 1}
+    public JSONObject pushgossipRoom(String type, String serverid, ArrayList<String> roomids, int rounds){
+        JSONObject gossip = new JSONObject();
+        gossip.put("type", type);
+        gossip.put("serverid", serverid);
+        gossip.put("roomids", roomids);
         gossip.put("rounds", rounds);
         return gossip;
     }
@@ -39,10 +59,11 @@ public class GossipHandler {
     }
 
     // {"type" : "pullupdate", "updatedlist": []}
-    public JSONObject pullUpdate(ArrayList<String> globalClients){
+    public JSONObject pullUpdate(ArrayList<String> updatedlist, String updatedType){
         JSONObject gossip = new JSONObject();
         gossip.put("type", "pullupdate");
-        gossip.put("updatedlist", globalClients);
+        gossip.put("updatetype", updatedType);
+        gossip.put("updatedlist", updatedlist);
         return gossip;
     }
 
@@ -144,10 +165,11 @@ public class GossipHandler {
 
     // {"type" : "isignorant", "sender": "senderid"}
     @SuppressWarnings("unchecked")
-    public JSONObject isIgnorant(){
+    public JSONObject isIgnorant(String pulltype){
         JSONObject gossip = new JSONObject();
         gossip.put("type", "isignorant");
         gossip.put("sender", System.getProperty("serverID"));
+        gossip.put("pulltype", pulltype);
         return gossip;
     }
 
