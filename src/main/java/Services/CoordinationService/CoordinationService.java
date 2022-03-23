@@ -141,7 +141,14 @@ public class CoordinationService extends Thread {
                     }
                     case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
-                        // TODO: have to do something when resceive deleteroom broad cast message
+                        String currentServer = ServerState.getServerStateInstance().getCurrentServerData().getServerID();
+                        String leaderserver = ServerState.getServerStateInstance().getLeaderServerData().getServerID();
+                        if (currentServer.equals(leaderserver)) {
+                            LeaderState.getInstance().getGlobalRoomList().remove((String) message.get("roomid"));
+                            JSONObject gossipMsg = this.gossipHandler.gossipRoom("gossiproom", System.getProperty("serverID"), LeaderState.getInstance().globalRoomList);
+                            Thread gossipService = new GossipService("send", "gossiproom", gossipMsg);
+                            gossipService.start();
+                        }
                     }
                     case "quit" -> {
                         logger.info("Received message type quit");
