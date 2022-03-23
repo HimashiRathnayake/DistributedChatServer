@@ -20,8 +20,10 @@ public class FastBullyService extends Thread {
     private String request;
     private JSONObject reply;
     private static final FastBullyHandler messageHandler = new FastBullyHandler();
-    /** Following variables are visible to all threads (since static) and
-     * any read or write operation on them will be visible to all other threads in the class atomically (since volatile).**/
+    /**
+     * Following variables are visible to all threads (since static) and
+     * any read or write operation on them will be visible to all other threads in the class atomically (since volatile).
+     **/
     private static volatile boolean electionInProgress = false;
     private static volatile List<JSONObject> viewMessagesReceived;
     private static volatile List<JSONObject> answerMessageReceived;
@@ -180,7 +182,7 @@ public class FastBullyService extends Thread {
                     }
                     case ("coordinationMessageWait") -> {
                         try {
-                            Thread.sleep(2600);
+                            Thread.sleep(2000);
                             if (electionInProgress) {
                                 if (coordinationMessageReceived == null) {
                                     FastBullyService fastBullyService = new FastBullyService("wait", "answerMessageWait");
@@ -196,7 +198,6 @@ public class FastBullyService extends Thread {
                                     coordinationMessageReceived = null;
                                     answerMessageReceived = Collections.synchronizedList(new ArrayList<>());
                                 }
-
                             }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -204,7 +205,15 @@ public class FastBullyService extends Thread {
                     }
                     case ("nominationCoordinationWait") -> {
                         try {
-                            Thread.sleep(1500);
+                            // busy wait for 1500 milliseconds
+                            int counter = 0;
+                            while (true) {
+                                counter+=1;
+                                Thread.sleep(50);
+                                if(!(nominationMessageReceived == null) && counter == 30){
+                                    break;
+                                }
+                            }
                             if (electionInProgress) {
                                 if (!(nominationMessageReceived == null)) {
                                     logger.info("Nomination message Received");
