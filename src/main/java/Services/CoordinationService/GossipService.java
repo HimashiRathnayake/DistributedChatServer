@@ -86,7 +86,6 @@ public class GossipService extends Thread {
                 ServerState serverSate = ServerState.getServerStateInstance();
                 serverSate.setRichNeighborData(selectRichNeighbour(serverSate.getCurrentServerData(), this.serverids));
                 serverSate.setIsIgnorant(true);
-                //updateServerState(true);
             }
             case ("send") -> {
                 this.serverids.add((String) this.gossipMsg.get("serverid"));
@@ -128,13 +127,12 @@ public class GossipService extends Thread {
                     case ("pushgossipidentity") -> {
                         if (richNeighbour != null ) {
                             logger.info("Send pushgossipidentity message");
-                            System.out.println(this.gossipMsg);
-                            //String serverID = (String) this.gossipMsg.get("serverid");
-                            //ConcurrentHashMap<String, Client> updatedlist = (ConcurrentHashMap<String, Client>) this.gossipMsg.get("updatedlist");
-                            int gossiprounds = Integer.parseInt((String) this.gossipMsg.get("rounds"));
-                            //JSONObject gossip = this.gossipHandler.pushgossipnewidentity("pushgossipnewidentity", serverID, identity, rounds);
-                            //JSONObject gossip = this.gossipHandler.pushgossip("pushgossipidentity", serverID, updatedlist, gossiprounds+1);
-                            //MessageTransferService.sendToServers(gossip, richNeighbour.getServerAddress(), richNeighbour.getCoordinationPort());
+                            String serverID = (String) this.gossipMsg.get("serverid");
+                            ArrayList<String> clientid = ServerState.getServerStateInstance().globalClientId;
+                            long gossiprounds = (long) this.gossipMsg.get("rounds");
+
+                            JSONObject gossip = this.gossipHandler.pushgossip("pushgossipidentity", serverID, clientid, (int) (gossiprounds+1));
+                            MessageTransferService.sendToServers(gossip, richNeighbour.getServerAddress(), richNeighbour.getCoordinationPort());
                         } else {
                             logger.info("Stop gossiping - null neighbour");
                         }
@@ -154,11 +152,10 @@ public class GossipService extends Thread {
                 switch (request) {
                     case ("pullgossipidentity") -> {
                         logger.info("Send pullgossipnewidentity message");
-                        System.out.println(this.gossipMsg);
                         ArrayList<String> clientIds = ServerState.getServerStateInstance().getGlobalClientsIds();
                         JSONObject gossip = this.gossipHandler.pullUpdate(clientIds);
-                        //String port = (String) this.gossipMsg.get("port");
-                        //MessageTransferService.sendToServers(gossip, (String) this.gossipMsg.get("host"), Integer.parseInt(port));
+                        String port = (String) this.gossipMsg.get("port");
+                        MessageTransferService.sendToServers(gossip, (String) this.gossipMsg.get("host"), Integer.parseInt(port));
 
                     }
                     case ("pullgossipcreateroom") -> {

@@ -17,7 +17,7 @@ public class ServerState {
     private ServerData leaderServerData;
     private ServerData richNeighborData;
     private boolean isIgnorant;
-    private final int initialRounds = 1;
+    private final int initialRounds = 2;
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();

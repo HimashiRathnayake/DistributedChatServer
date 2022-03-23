@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -155,7 +156,7 @@ public class CoordinationService extends Thread {
                         ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
                         MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
                         if (responses.containsKey("gossip")) {
-                            Thread gossipService = new GossipService("send", "gossipnewidentity", responses.get("gossip"));
+                            Thread gossipService = new GossipService("send", "gossipidentity", responses.get("gossip"));
                             gossipService.start();
                         }
 
@@ -214,13 +215,28 @@ public class CoordinationService extends Thread {
                             String pulltype = (String) message.get("pulltype");
                             Thread gossipService = new GossipService("pull", pulltype, message);
                             gossipService.start();
+                        } else {
+                            logger.info("Rich neighbour is ignorant");
+                            JSONObject msg = new GossipHandler().isIgnorant();
+                            MessageTransferService.sendToServers(msg, (String) message.get("host"), Integer.parseInt((String) message.get("port")));
+
                         }
-                        //TODO: else
+                    }
+                    case "isignorant" -> {
+                        logger.info("Received message type isignorant");
+                        String host = ServerState.getServerStateInstance().getCurrentServerData().getServerAddress();
+                        String port = Integer.toString(ServerState.getServerStateInstance().getCurrentServerData().getCoordinationPort());
+                        JSONObject msg = new GossipHandler().pullGossip("pullgossipidentity", host, port);
+                        ArrayList<String> serverlist = new ArrayList<String>(ServerState.getServerStateInstance().getServersList().keySet());
+                        Random rand = new Random();
+                        String randomneighbour = serverlist.get(rand.nextInt(serverlist.size()));
+                        ServerData richneighbour = ServerState.getServerStateInstance().getServersList().get(randomneighbour);
+                        MessageTransferService.sendToServers(msg, richneighbour.getServerAddress(), richneighbour.getCoordinationPort());
                     }
                     case "pullupdate" -> {
                         logger.info("Received message type pullupdate");
                         ServerState.getServerStateInstance().setIsIgnorant(false);
-                        //ServerState.getServerStateInstance().setGlobalClients((ConcurrentHashMap<String, Client>) message.get("updatedlist"));
+                        ServerState.getServerStateInstance().setGlobalClientIDs((ArrayList<String>) message.get("updatedlist"));
                     }
                     default -> {
                         // Send other cases to FastBully Service to handle

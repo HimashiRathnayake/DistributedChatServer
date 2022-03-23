@@ -142,6 +142,15 @@ public class GossipHandler {
         return gossip;
     }
 
+    // {"type" : "isignorant", "sender": "senderid"}
+    @SuppressWarnings("unchecked")
+    public JSONObject isIgnorant(){
+        JSONObject gossip = new JSONObject();
+        gossip.put("type", "isignorant");
+        gossip.put("sender", System.getProperty("serverID"));
+        return gossip;
+    }
+
     // {"type" : "pullgossipcreateroom", "sender": "senderid"}
     @SuppressWarnings("unchecked")
     public JSONObject pullgossipcreateroom(){
