@@ -6,6 +6,14 @@ public class RequestHandler {
     // Handle Requests To leader
 
     // list - {“type” : “allrooms”}
+    @SuppressWarnings("unchecked")
+    public JSONObject createAllRoomsRequest(String clientID){
+        JSONObject allroomsRequest = new JSONObject();
+        allroomsRequest.put("type", "allrooms");
+        allroomsRequest.put("serverid", System.getProperty("serverID"));
+        allroomsRequest.put("clientid", clientID);
+        return allroomsRequest;
+    }
     // who
 
     // createroom - {“type”: "createroom", “roomid”: “jokes”, "clientid": "clientID", "serverid": "serverid"}

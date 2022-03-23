@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ChatClientService extends Thread {
+
     private final Logger logger = Logger.getLogger(ChatClientService.class);
     private final  Socket clientSocket;
     private final JSONParser parser = new JSONParser();
@@ -70,9 +71,12 @@ public class ChatClientService extends Thread {
                 switch (type) {
                     case "list" -> {
                         logger.info("Received message type list");
-                        //TODO: get room list from other servers
-                        JSONObject roomListResponse = new ClientResponseHandler().sendRoomList(new RoomListHandler(clientResponseHandler).getRoomList());
-                        MessageTransferService.send(this.clientSocket, roomListResponse);
+                        JSONObject roomListResponse = new RoomListHandler(this.clientResponseHandler).getRoomList(client.getIdentity());
+                        logger.info(roomListResponse.isEmpty());
+                        logger.info(roomListResponse);
+                        if (!roomListResponse.isEmpty()){
+                            MessageTransferService.send(this.clientSocket, roomListResponse);
+                        }
                     }
                     case "who" -> {
                         logger.info("Received message type who");
