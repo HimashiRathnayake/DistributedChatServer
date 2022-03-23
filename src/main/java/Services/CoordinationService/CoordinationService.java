@@ -3,6 +3,10 @@ package Services.CoordinationService;
 import Handlers.CoordinationHandler.*;
 import Models.Client;
 import Models.Room;
+import Handlers.ChatHandler.ClientResponseHandler;
+import Handlers.CoordinationHandler.*;
+import Models.Client;
+import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
@@ -46,8 +50,18 @@ public class CoordinationService extends Thread {
                 String type = (String) message.get("type");
 //                System.out.println("Receiving: " + message);
                 switch (type) {
-                    case "list" -> {
+                    case "allrooms" -> {
                         logger.info("Received message type list");
+                        JSONObject response = new RoomListHandler().coordinatorRoomList((String) message.get("clientid"));
+                        ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
+                        MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                    }
+                    case "leaderallrooms" -> {
+                        System.out.println(message.get("allrooms"));
+                        JSONObject response = new ClientResponseHandler().sendRoomList((ArrayList<String>) message.get("allrooms"));
+                        logger.info(response);
+                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get(message.get("clientid"));
+                        MessageTransferService.send(chatClientService.getClientSocket(), response);
                     }
                     case "createroom" -> {
                         logger.info("Received message type createroom");
@@ -126,6 +140,11 @@ public class CoordinationService extends Thread {
                     case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
                         // TODO: have to do something when resceive deleteroom broad cast message
+                    }
+                    case "quit" -> {
+                        logger.info("Received message type quit");
+                        LeaderState.getInstance().globalClients.remove((String) message.get("identity"));
+                        //TODO: Gossip to others.
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");

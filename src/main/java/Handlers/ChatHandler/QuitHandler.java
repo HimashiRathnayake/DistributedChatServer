@@ -1,10 +1,13 @@
 package Handlers.ChatHandler;
 
+import Handlers.CoordinationHandler.RequestHandler;
 import Handlers.CoordinationHandler.ResponseHandler;
 import Models.Client;
 import Models.Room;
 import Models.Server.LeaderState;
+import Models.Server.ServerData;
 import Models.Server.ServerState;
+import Services.MessageTransferService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -16,6 +19,7 @@ public class QuitHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
     private final ClientResponseHandler clientResponseHandler;
     private final ResponseHandler serverResponseHandler = new ResponseHandler();
+    private final RequestHandler serverRequestHandler = new RequestHandler();
 
     public QuitHandler(ClientResponseHandler clientResponseHandler) {
         this.clientResponseHandler = clientResponseHandler;
@@ -27,6 +31,9 @@ public class QuitHandler {
         ServerState.getServerStateInstance().clients.remove(clientID); // remove the client from the client list
         if (ServerState.getServerStateInstance().isCurrentServerLeader()) {
             LeaderState.getInstance().globalClients.remove(clientID);
+        } else {
+            ServerData leaderServer = ServerState.getServerStateInstance().getLeaderServerData();
+            MessageTransferService.sendToServers(serverRequestHandler.sendQuitClientResponse(clientID), leaderServer.getServerAddress(), leaderServer.getCoordinationPort());
         }
         Room deleteRoom = ServerState.getServerStateInstance().getOwningRoom(clientID);
         Map<String, ArrayList<JSONObject>> responses = new HashMap<>();

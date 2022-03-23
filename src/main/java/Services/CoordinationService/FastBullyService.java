@@ -7,43 +7,44 @@ import Services.MessageTransferService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import javax.swing.*;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FastBullyService extends Thread {
 
     private static final Logger logger = Logger.getLogger(FastBullyService.class);
     private final String operation; // wait or send message
     private String request;
-    private static final FastBullyHandler messageHandler = new FastBullyHandler();
-    private static boolean electionInProgress = false;
-    private static ArrayList<JSONObject> viewMessagesReceived;
-    private static ArrayList<JSONObject> answerMessageReceived;
-    private static JSONObject coordinationMessageReceived = null;
-    private static JSONObject nominationMessageReceived = null;
     private JSONObject reply;
-    private static boolean nominationStart = false;
+    private static final FastBullyHandler messageHandler = new FastBullyHandler();
+    /**
+     * Following variables are visible to all threads (since static) and
+     * any read or write operation on them will be visible to all other threads in the class atomically (since volatile).
+     **/
+    private static volatile boolean electionInProgress = false;
+    private static volatile List<JSONObject> viewMessagesReceived;
+    private static volatile List<JSONObject> answerMessageReceived;
+    private static volatile JSONObject coordinationMessageReceived = null;
+    private static volatile JSONObject nominationMessageReceived = null;
+    private static volatile boolean nominationStart = false;
 
     public FastBullyService(String operation, String request) {
         this.operation = operation;
         this.request = request;
     }
 
-    public void setReply(JSONObject reply) {
-        this.reply = reply;
-    }
-
     public FastBullyService(String operation) {
         this.operation = operation;
     }
 
-    public String getHighestPriorityServers(String currentServerID, ArrayList<JSONObject> responses) {
+    public void setReply(JSONObject reply) {
+        this.reply = reply;
+    }
+
+    public String getHighestPriorityServersByID(String currentServerID, List<JSONObject> responses) {
         String highestPriorityServerID = currentServerID;
         for (JSONObject response : responses) {
             String serverID = response.get("serverid").toString();
@@ -93,21 +94,23 @@ public class FastBullyService extends Thread {
                     try {
                         ServerState serverState = ServerState.getServerStateInstance();
                         if (!serverState.getCurrentServerData().getServerID().equals(serverState.getLeaderServerData().getServerID())) {
-                            Thread.sleep(3000);
+                            Thread.sleep(1500);
                             ServerState newServerState = ServerState.getServerStateInstance();
                             MessageTransferService.heartbeatToLeader(messageHandler.heartBeatMessage(), newServerState.getLeaderServerData().getServerAddress(), newServerState.getLeaderServerData().getCoordinationPort());
                         }
                     } catch (IOException e) {
-                        electionInProgress = true;
-                        answerMessageReceived = new ArrayList<JSONObject>();
-                        ServerState newServerState = ServerState.getServerStateInstance();
-                        logger.error("Heartbeat of the leader is stopped - " + e.getMessage());
-                        ArrayList<ServerData> higherPriorityServers = getHigherPriorityServers(newServerState.getCurrentServerData());
-                        MessageTransferService.sendToSelectedServersBroadcast(higherPriorityServers, messageHandler.electionMessage());
-                        FastBullyService fastBullyService = new FastBullyService("wait", "electionWait");
-                        fastBullyService.start();
+                        if (!electionInProgress) {
+                            electionInProgress = true;
+                            answerMessageReceived = Collections.synchronizedList(new ArrayList<>());
+                            ServerState newServerState = ServerState.getServerStateInstance();
+                            logger.info("Heartbeat of the leader is stopped and Sending Election message");
+                            ArrayList<ServerData> higherPriorityServers = getHigherPriorityServers(newServerState.getCurrentServerData());
+                            MessageTransferService.sendToSelectedServersBroadcast(higherPriorityServers, messageHandler.electionMessage());
+                            FastBullyService fastBullyService = new FastBullyService("wait", "answerMessageWait");
+                            fastBullyService.start();
+                        }
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        logger.error("Interrupt Exception occurred. Error Message: " + e.getMessage());
                     }
                 }
             }
@@ -125,10 +128,10 @@ public class FastBullyService extends Thread {
                                 logger.info("View messages received.");
                                 // TODO: Compare view messages and update
                                 // Check highest priority server from views
-                                String highestPriorityServerID = getHighestPriorityServers(currentServerID, viewMessagesReceived);
+                                String highestPriorityServerID = getHighestPriorityServersByID(currentServerID, viewMessagesReceived);
                                 if (highestPriorityServerID.equals(currentServerID)) {
                                     // If Current Server has the highest priority broadcast coordinator message to others
-                                    logger.info("Current server become the leader");
+                                    logger.info("Current server become the leader and sending coordinator message");
                                     ServerState.getServerStateInstance().setLeaderServerData(currentServer);
                                     //TODO: check this coordinator message sending part
                                     MessageTransferService.sendToServersBroadcast(messageHandler.coordinatorMessage()); //broadcast coordinator message
@@ -147,30 +150,30 @@ public class FastBullyService extends Thread {
                             e.printStackTrace();
                         }
                     }
-                    case ("electionWait") -> {
+                    case ("answerMessageWait") -> {
                         try {
-                            Thread.sleep(1500);
-                            ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
-                            String currentServerID = currentServer.getServerID();
-                            if (answerMessageReceived.isEmpty()) {
-                                logger.info("No answer messages received. Current server become the leader");
-                                ServerState.getServerStateInstance().setLeaderServerData(currentServer);
-                                ArrayList<ServerData> lowPriorityServes = getLowPriorityServers(currentServer);
-                                MessageTransferService.sendToSelectedServersBroadcast(lowPriorityServes, messageHandler.coordinatorMessage());
-                                electionInProgress = false;
-                                nominationStart = false;
-                            } else {
-                                String highestPriorityServerID = getHighestPriorityServers(currentServerID, answerMessageReceived);
-                                // Else save the highest priority server as leader
-                                logger.info("<Election> Set the leader to server : " + highestPriorityServerID);
-                                ServerData highestPriorityServerData = ServerState.getServerStateInstance().getServerDataById(highestPriorityServerID);
-                                logger.info("Sending Nomination message");
-                                nominationStart = true;
-                                MessageTransferService.sendToServers(messageHandler.nominationMessage(), highestPriorityServerData.getServerAddress(), highestPriorityServerData.getCoordinationPort());
-                                removeNominationSend(highestPriorityServerID);
-                                FastBullyService fastBullyService = new FastBullyService("wait", "coordinationMessageWait");
-                                fastBullyService.start();
-
+                            Thread.sleep(500);
+                            if (electionInProgress) {
+                                ServerData currentServer = ServerState.getServerStateInstance().getCurrentServerData();
+                                String currentServerID = currentServer.getServerID();
+                                if (answerMessageReceived.isEmpty()) {
+                                    logger.info("No answer messages received. Current server become the leader and sending coordinator message");
+                                    ServerState.getServerStateInstance().setLeaderServerData(currentServer);
+                                    ArrayList<ServerData> lowPriorityServes = getLowPriorityServers(currentServer);
+                                    MessageTransferService.sendToSelectedServersBroadcast(lowPriorityServes, messageHandler.coordinatorMessage());
+                                    electionInProgress = false;
+                                    nominationStart = false;
+                                } else {
+                                    String highestPriorityServerID = getHighestPriorityServersByID(currentServerID, answerMessageReceived);
+                                    // Else save the highest priority server as leader
+                                    ServerData highestPriorityServerData = ServerState.getServerStateInstance().getServerDataById(highestPriorityServerID);
+                                    logger.info("Sending Nomination message");
+                                    nominationStart = true;
+                                    MessageTransferService.sendToServers(messageHandler.nominationMessage(), highestPriorityServerData.getServerAddress(), highestPriorityServerData.getCoordinationPort());
+                                    removeNominationSend(highestPriorityServerID);
+                                    FastBullyService fastBullyService = new FastBullyService("wait", "coordinationMessageWait");
+                                    fastBullyService.start();
+                                }
                             }
                         } catch (InterruptedException e) {
                             logger.error("Exception occurred in wait thread");
@@ -179,50 +182,71 @@ public class FastBullyService extends Thread {
                     }
                     case ("coordinationMessageWait") -> {
                         try {
-                            Thread.sleep(1500);
-                            if (coordinationMessageReceived == null) {
-                                FastBullyService fastBullyService = new FastBullyService("wait", "electionWait");
-                                fastBullyService.start();
-                            } else {
-                                electionInProgress = false;
-                                nominationStart = false;
-                                String leaderServerID = (String) coordinationMessageReceived.get("serverid");
-                                ServerData leaderServer = ServerState.getServerStateInstance().getServerDataById(leaderServerID);
-                                ServerState.getServerStateInstance().setLeaderServerData(leaderServer);
-                                coordinationMessageReceived = null;
-                                answerMessageReceived = new ArrayList<>();
+                            Thread.sleep(2000);
+                            if (electionInProgress) {
+                                if (coordinationMessageReceived == null) {
+                                    FastBullyService fastBullyService = new FastBullyService("wait", "answerMessageWait");
+                                    fastBullyService.start();
+                                } else {
+                                    logger.info("Coordinator message Received");
+                                    electionInProgress = false;
+                                    nominationStart = false;
+                                    String leaderServerID = (String) coordinationMessageReceived.get("serverid");
+                                    logger.info("Set the leader to server : " + leaderServerID);
+                                    ServerData leaderServer = ServerState.getServerStateInstance().getServerDataById(leaderServerID);
+                                    ServerState.getServerStateInstance().setLeaderServerData(leaderServer);
+                                    coordinationMessageReceived = null;
+                                    answerMessageReceived = Collections.synchronizedList(new ArrayList<>());
+                                }
                             }
-
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
                     case ("nominationCoordinationWait") -> {
-                        if (!(nominationMessageReceived == null)) {
-                            logger.info("Sending Coordinator Message");
-                            ServerData leaderServer = ServerState.getServerStateInstance().getCurrentServerData();
-                            ServerState.getServerStateInstance().setLeaderServerData(leaderServer);
-                            MessageTransferService.sendToServersBroadcast(messageHandler.coordinatorMessage());
-                            nominationMessageReceived = null;
-                            nominationStart = false;
-                            electionInProgress = false;
-                        }else if (!(coordinationMessageReceived == null)){
-                            String leaderServerID = (String) coordinationMessageReceived.get("serverid");
-                            ServerData leaderServer = ServerState.getServerStateInstance().getServerDataById(leaderServerID);
-                            ServerState.getServerStateInstance().setLeaderServerData(leaderServer);
-                            coordinationMessageReceived = null;
-                            nominationStart = false;
-                            electionInProgress = false;
-                        }else{
-                            electionInProgress = true;
-                            answerMessageReceived = new ArrayList<JSONObject>();
-                            ServerState newServerState = ServerState.getServerStateInstance();
-                            ArrayList<ServerData> higherPriorityServers = getHigherPriorityServers(newServerState.getCurrentServerData());
-                            MessageTransferService.sendToSelectedServersBroadcast(higherPriorityServers, messageHandler.electionMessage());
-                            FastBullyService fastBullyService = new FastBullyService("wait", "electionWait");
-                            fastBullyService.start();
+                        try {
+                            // busy wait for 1500 milliseconds
+                            int counter = 0;
+                            while (true) {
+                                counter+=1;
+                                Thread.sleep(50);
+                                if(!(nominationMessageReceived == null) && counter == 30){
+                                    break;
+                                }
+                            }
+                            if (electionInProgress) {
+                                if (!(nominationMessageReceived == null)) {
+                                    logger.info("Nomination message Received");
+                                    ServerData leaderServer = ServerState.getServerStateInstance().getCurrentServerData();
+                                    ServerState.getServerStateInstance().setLeaderServerData(leaderServer);
+                                    logger.info("Current server become leader and Sending Coordinator Message");
+                                    MessageTransferService.sendToServersBroadcast(messageHandler.coordinatorMessage());
+                                    nominationMessageReceived = null;
+                                    nominationStart = false;
+                                    electionInProgress = false;
+                                } else if (!(coordinationMessageReceived == null)) {
+                                    logger.info("Coordinator message Received");
+                                    logger.info("Set the leader to server : " + coordinationMessageReceived.get("serverid"));
+                                    String leaderServerID = (String) coordinationMessageReceived.get("serverid");
+                                    ServerData leaderServer = ServerState.getServerStateInstance().getServerDataById(leaderServerID);
+                                    ServerState.getServerStateInstance().setLeaderServerData(leaderServer);
+                                    coordinationMessageReceived = null;
+                                    nominationStart = false;
+                                    electionInProgress = false;
+                                } else {
+                                    electionInProgress = true;
+                                    logger.info("Coordination message or nomination message did not received and restart election procedure");
+                                    answerMessageReceived = Collections.synchronizedList(new ArrayList<>());
+                                    ServerState newServerState = ServerState.getServerStateInstance();
+                                    ArrayList<ServerData> higherPriorityServers = getHigherPriorityServers(newServerState.getCurrentServerData());
+                                    MessageTransferService.sendToSelectedServersBroadcast(higherPriorityServers, messageHandler.electionMessage());
+                                    FastBullyService fastBullyService = new FastBullyService("wait", "answerMessageWait");
+                                    fastBullyService.start();
+                                }
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-
                     }
                 }
             }
@@ -230,22 +254,18 @@ public class FastBullyService extends Thread {
                 switch (request) {
                     case "iamup" -> {
                         // send iam up message
-                        logger.info("Sending IAM UP message");
-                        electionInProgress = true;
-                        viewMessagesReceived = new ArrayList<JSONObject>();
-                        MessageTransferService.sendToServersBroadcast(messageHandler.iamUpMessage());
-                        FastBullyService fastBullyService = new FastBullyService("wait", "viewMessageWait");
-                        fastBullyService.start();
+                        if (!electionInProgress) {
+                            logger.info("Sending IAM UP message");
+                            electionInProgress = true;
+                            viewMessagesReceived = Collections.synchronizedList(new ArrayList<>());
+                            MessageTransferService.sendToServersBroadcast(messageHandler.iamUpMessage());
+                            FastBullyService fastBullyService = new FastBullyService("wait", "viewMessageWait");
+                            fastBullyService.start();
+                        }
                     }
-                    case "election" -> {  // done!
-                        logger.info("Sending Election Message");
-                    }
-                    case "nomination" -> {
-                        logger.info("Sending Nomination Message");
-                    }
-                    case "coordinator" -> {  // done!
-                        logger.info("Sending Coordinator Message");
-                    }
+                    case "election" -> logger.info("Sending Election Message");
+                    case "nomination" -> logger.info("Sending Nomination Message");
+                    case "coordinator" -> logger.info("Sending Coordinator Message");
                     case "answer" -> {
                         logger.info("Sending Answer Message");
                         ServerData requestServer = ServerState.getServerStateInstance().getServerDataById((String) this.reply.get("serverid"));
@@ -284,21 +304,21 @@ public class FastBullyService extends Thread {
                 fastBullyService.start();
             }
             case "election" -> {
+                electionInProgress = true;
                 logger.info("Election message Received");
                 FastBullyService fastBullyService = new FastBullyService("send", "answer");
                 fastBullyService.setReply(response);
                 fastBullyService.start();
             }
-            case "nomination" -> {
-                logger.info("Nomination message Received");
-                nominationMessageReceived = response;
-            }
+            case "nomination" -> nominationMessageReceived = response;
             case "coordinator" -> {
-                logger.info("Coordinator message Received");
                 if (nominationStart) {
                     coordinationMessageReceived = response;
                 } else {
+                    electionInProgress = false;
+                    logger.info("Coordinator message Received");
                     String leaderServerID = (String) response.get("serverid");
+                    logger.info("Set the leader to server :  " + leaderServerID);
                     ServerData leaderServer = ServerState.getServerStateInstance().getServerDataById(leaderServerID);
                     ServerState.getServerStateInstance().setLeaderServerData(leaderServer);
                 }
@@ -307,10 +327,7 @@ public class FastBullyService extends Thread {
                 logger.info("Answer message Received");
                 answerMessageReceived.add(response);
             }
-            case "view" -> {
-                logger.info("View message Received");
-                viewMessagesReceived.add(response);
-            }
+            case "view" -> viewMessagesReceived.add(response);
         }
     }
 

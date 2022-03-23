@@ -2,10 +2,28 @@ package Handlers.CoordinationHandler;
 
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+
 public class ResponseHandler {
     // Handle Responses From Leader
 
     // list - {"type" : allrooms, "allrooms": ["jokes", "room1"}
+    @SuppressWarnings("unchecked")
+    public JSONObject createAllRoomsListResponse(Object allrooms){
+        JSONObject allRoomsRequest = new JSONObject();
+        allRoomsRequest.put("type", "allrooms");
+        allRoomsRequest.put("allrooms", allrooms);
+        return allRoomsRequest;
+    }
+
+    @SuppressWarnings("unchecked")
+    public JSONObject createAllRoomsListResponseFromLeader(ArrayList<String> allrooms, String clientID){
+        JSONObject allRoomsRequest = new JSONObject();
+        allRoomsRequest.put("type", "leaderallrooms");
+        allRoomsRequest.put("allrooms", allrooms);
+        allRoomsRequest.put("clientid", clientID);
+        return allRoomsRequest;
+    }
     // who
 
     // createroom - {"type": "leadercreateroom", "approved": "true", "roomid": "roomid", "clientid", "clientid"}
