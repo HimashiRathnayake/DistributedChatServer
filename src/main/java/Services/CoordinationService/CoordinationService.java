@@ -1,9 +1,6 @@
 package Services.CoordinationService;
 
-import Handlers.CoordinationHandler.CreateRoomHandler;
-import Handlers.CoordinationHandler.JoinRoomHandler;
-import Handlers.CoordinationHandler.NewIdentityHandler;
-import Handlers.CoordinationHandler.ResponseHandler;
+import Handlers.CoordinationHandler.*;
 import Models.Client;
 import Models.Server.LeaderState;
 import Models.Server.ServerData;
@@ -18,6 +15,7 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,8 +43,15 @@ public class CoordinationService extends Thread {
                 String type = (String) message.get("type");
 //                System.out.println("Receiving: " + message);
                 switch (type) {
-                    case "list" -> {
+                    case "allrooms" -> {
                         logger.info("Received message type list");
+                        JSONObject response = new RoomListHandler().coordinatorRoomList((String) message.get("clientid"));
+                    }
+                    case "leaderallrooms" -> {
+                        JSONObject response = new ResponseHandler().createAllRoomsListResponse((ArrayList<String>) message.get("allrooms"));
+                        logger.info(response);
+                        ChatClientService chatClientService = ServerState.getServerStateInstance().clientServices.get(message.get("clientid"));
+                        MessageTransferService.send(chatClientService.getClientSocket(), response);
                     }
                     case "createroom" -> {
                         logger.info("Received message type createroom");
