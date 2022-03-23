@@ -2,7 +2,6 @@ package Services.ChatService;
 
 import Handlers.ChatHandler.*;
 import Models.Client;
-import Models.Server.LeaderState;
 import Models.Server.ServerState;
 import Services.MessageTransferService;
 import org.apache.log4j.Logger;
