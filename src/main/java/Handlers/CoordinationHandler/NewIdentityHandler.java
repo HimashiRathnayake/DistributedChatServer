@@ -77,7 +77,8 @@ public class NewIdentityHandler {
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("true"));
             responses.put("broadcast", moveToMainHall(client));
         }else if(isApproved.equals("false")){
-//            ServerState.getServerStateInstance().clientServices.remove("test"); //
+            ServerState.getServerStateInstance().clientServices.get("1temp-"+identity).stop();
+            ServerState.getServerStateInstance().clientServices.remove("1temp-"+identity); //
             logger.info("New identity creation rejected");
             ServerState.getServerStateInstance().clientServices.remove("1temp-"+identity); //
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("false"));

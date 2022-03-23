@@ -5,6 +5,7 @@ import Handlers.CoordinationHandler.JoinRoomHandler;
 import Handlers.CoordinationHandler.NewIdentityHandler;
 import Handlers.CoordinationHandler.ResponseHandler;
 import Models.Client;
+import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ChatService.ChatClientService;
@@ -124,6 +125,11 @@ public class CoordinationService extends Thread {
                     case "deleteroom" -> {
                         logger.info("Received message type deleteroom");
                         // TODO: have to do something when resceive deleteroom broad cast message
+                    }
+                    case "quit" -> {
+                        logger.info("Received message type quit");
+                        LeaderState.getInstance().globalClients.remove((String) message.get("identity"));
+                        //TODO: Gossip to others.
                     }
                     case "newidentity" -> {
                         logger.info("Received message type newidentity");
