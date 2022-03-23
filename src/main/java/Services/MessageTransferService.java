@@ -44,12 +44,6 @@ public class MessageTransferService {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
             dataOutputStream.flush();
-//            while (true){
-//                if(socket.isClosed()){
-//                    socket.close();
-//                    break;
-//                }
-//            }
         } catch (IOException e) {
 //            logger.info("Server is not online, exception occur -  " + e.getMessage());
 //             e.printStackTrace();
@@ -71,12 +65,6 @@ public class MessageTransferService {
         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
         dataOutputStream.write((message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8));
         dataOutputStream.flush();
-//            while (true){
-//                if(socket.isClosed()){
-//                    socket.close();
-//                    break;
-//                }
-//            }
     }
 
     public static void sendToSelectedServersBroadcast(ArrayList<ServerData> servers, JSONObject message) {
