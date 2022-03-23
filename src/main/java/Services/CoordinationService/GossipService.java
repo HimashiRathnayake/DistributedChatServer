@@ -3,6 +3,7 @@ package Services.CoordinationService;
 import Handlers.CoordinationHandler.FastBullyHandler;
 import Handlers.CoordinationHandler.GossipHandler;
 import Models.Client;
+import Models.Room;
 import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
@@ -104,14 +105,16 @@ public class GossipService extends Thread {
                             MessageTransferService.sendToServers(gossip, richNeighbour.getServerAddress(), richNeighbour.getCoordinationPort());
                         }
                     }
-                    case ("gossipcreateroom") -> {
-                        logger.info("Send gossipnewroom message");
-                    }
-                    case ("gossipdeleteroom") -> {
-                        logger.info("Send gossipdeleteroom message");
-                    }
-                    case ("gossipquit") -> {
-                        logger.info("Send gossipquit message");
+                    case ("gossiproom") -> {
+                        logger.info("Send gossiproom message");
+                        if (richNeighbour != null) {
+                            String serverID = (String) this.gossipMsg.get("serverid");
+                            ConcurrentHashMap<String, Room> updatedlist = (ConcurrentHashMap<String, Room>) this.gossipMsg.get("updatedlist");
+                            ArrayList<String> roomids = new ArrayList<String>(updatedlist.keySet());
+
+                            JSONObject gossip = this.gossipHandler.pushgossipRoom("pushgossiproom", serverID, roomids, 1);
+                            MessageTransferService.sendToServers(gossip, richNeighbour.getServerAddress(), richNeighbour.getCoordinationPort());
+                        }
                     }
                 }
             }
@@ -137,35 +140,37 @@ public class GossipService extends Thread {
                             logger.info("Stop gossiping - null neighbour");
                         }
                     }
-                    case ("pushgossipcreateroom") -> {
-                        logger.info("Send pushgossipnewroom message");
-                    }
-                    case ("pushgossipdeleteroom") -> {
-                        logger.info("Send pushgossipdeleteroom message");
-                    }
-                    case ("pushgossipquit") -> {
-                        logger.info("Send pushgossipquit message");
+                    case ("pushgossiproom") -> {
+                        logger.info("Send pushgossiproom message");
+                        if (richNeighbour != null ) {
+                            logger.info("Send pushgossiproom message");
+                            String serverID = (String) this.gossipMsg.get("serverid");
+                            ArrayList<String> roomids = ServerState.getServerStateInstance().globalRoomList;
+                            long gossiprounds = (long) this.gossipMsg.get("rounds");
+
+                            JSONObject gossip = this.gossipHandler.pushgossipRoom("pushgossiproom", serverID, roomids, (int) (gossiprounds+1));
+                            MessageTransferService.sendToServers(gossip, richNeighbour.getServerAddress(), richNeighbour.getCoordinationPort());
+                        } else {
+                            logger.info("Stop gossiping - null neighbour");
+                        }
                     }
                 }
             }
             case ("pull") -> {
                 switch (request) {
                     case ("pullgossipidentity") -> {
-                        logger.info("Send pullgossipnewidentity message");
+                        logger.info("Send pullgossipidentity message");
                         ArrayList<String> clientIds = ServerState.getServerStateInstance().getGlobalClientsIds();
-                        JSONObject gossip = this.gossipHandler.pullUpdate(clientIds);
+                        JSONObject gossip = this.gossipHandler.pullUpdate(clientIds, "identity");
                         String port = (String) this.gossipMsg.get("port");
                         MessageTransferService.sendToServers(gossip, (String) this.gossipMsg.get("host"), Integer.parseInt(port));
-
                     }
-                    case ("pullgossipcreateroom") -> {
-                        logger.info("Send pullgossipnewroom message");
-                    }
-                    case ("pullgossipdeleteroom") -> {
-                        logger.info("Send pullgossipdeleteroom message");
-                    }
-                    case ("pullgossipquit") -> {
-                        logger.info("Send pullgossipquit message");
+                    case ("pullgossiproom") -> {
+                        logger.info("Send pullgossiproom message");
+                        ArrayList<String> roomids = ServerState.getServerStateInstance().getGlobalRoomList();
+                        JSONObject gossip = this.gossipHandler.pullUpdate(roomids, "room");
+                        String port = (String) this.gossipMsg.get("port");
+                        MessageTransferService.sendToServers(gossip, (String) this.gossipMsg.get("host"), Integer.parseInt(port));
                     }
                 }
             }

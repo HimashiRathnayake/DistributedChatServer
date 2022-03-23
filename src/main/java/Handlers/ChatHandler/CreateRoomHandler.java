@@ -1,5 +1,6 @@
 package Handlers.ChatHandler;
 
+import Handlers.CoordinationHandler.GossipHandler;
 import Handlers.CoordinationHandler.RequestHandler;
 import Models.Client;
 import Models.Room;
@@ -18,6 +19,7 @@ public class CreateRoomHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
     private final ClientResponseHandler clientResponseHandler;
     private final RequestHandler serverRequestHandler = new RequestHandler();
+    private final GossipHandler gossipHandler = new GossipHandler();
 
     public CreateRoomHandler(ClientResponseHandler clientResponseHandler){
         this.clientResponseHandler = clientResponseHandler;
@@ -93,6 +95,8 @@ public class CreateRoomHandler {
                 logger.info("New room creation accepted");
                 responses.put("client-only", clientResponseHandler.sendNewRoomResponse(roomid, "true"));
                 responses.put("broadcast", moveToNewRoom(room, client));
+                JSONObject gossipMsg = this.gossipHandler.gossipRoom("gossiproom", System.getProperty("serverID"), LeaderState.getInstance().getGlobalRoomList());
+                responses.put("gossip", gossipMsg);
             } else if(checkRoomIdUnique.equals("askedFromLeader")){
                 logger.info("Asked from leader");
                 responses.put("askedFromLeader", null);

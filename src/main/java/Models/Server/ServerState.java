@@ -21,7 +21,7 @@ public class ServerState {
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();
-    public ConcurrentHashMap<String, Room> globalRoomList = new ConcurrentHashMap<>();
+    public ArrayList<String> globalRoomList = new ArrayList<>();
     public ArrayList<String> globalClientId = new ArrayList<>();
     public final ConcurrentHashMap<String, ChatClientService> clientServices = new ConcurrentHashMap<>();
     private final Logger logger = Logger.getLogger(ServerState.class);
@@ -60,7 +60,7 @@ public class ServerState {
         return initialRounds;
     }
 
-    public synchronized ConcurrentHashMap<String, Room> getGlobalRoomList() {
+    public synchronized ArrayList<String> getGlobalRoomList() {
         return globalRoomList;
     }
 
@@ -100,7 +100,7 @@ public class ServerState {
         this.isIgnorant = isIgnorant;
     }
 
-    public synchronized void setGlobalRoomList(ConcurrentHashMap<String, Room> globalRoomList) {
+    public synchronized void setGlobalRoomList(ArrayList<String> globalRoomList) {
         this.globalRoomList = globalRoomList;
     }
 

@@ -66,9 +66,14 @@ public class CoordinationService extends Thread {
                     }
                     case "createroom" -> {
                         logger.info("Received message type createroom");
-                        JSONObject response = new CreateRoomHandler().coordinatorNewRoomIdentity((String) message.get("clientid"), (String) message.get("roomid"), (String) message.get("serverid"));
+                        Map<String, JSONObject> responses = new CreateRoomHandler().coordinatorNewRoomIdentity((String) message.get("clientid"), (String) message.get("roomid"), (String) message.get("serverid"));
+                        JSONObject response = responses.get("response");
                         ServerData requestServer = ServerState.getServerStateInstance().getServersList().get((String) message.get("serverid"));
                         MessageTransferService.sendToServers(response, requestServer.getServerAddress(), requestServer.getCoordinationPort());
+                        if (responses.containsKey("gossip")) {
+                            Thread gossipService = new GossipService("send", "gossiproom", responses.get("gossip"));
+                            gossipService.start();
+                        }
                     }
                     case "leadercreateroom" -> {
                         logger.info("Received message type leadercreateroom");
@@ -194,6 +199,26 @@ public class CoordinationService extends Thread {
                             }
                         }
                     }
+                    case "pushgossiproom" -> {
+                        logger.info("Received message type pushgossiproom");
+                        long gossiprounds = (long) message.get("rounds");
+                        ServerState.getServerStateInstance().setIsIgnorant(false);
+                        ServerState.getServerStateInstance().setGlobalRoomList((ArrayList<String>) message.get("roomids"));
+                        if (gossiprounds < ServerState.getServerStateInstance().getInitialRounds()){
+                            Thread gossipService = new GossipService("push", "pushgossiproom", message);
+                            gossipService.start();
+                        } else {
+                            System.out.println("Gossip rounds exceed");
+                            //ServerData richneighbour = ServerState.getServerStateInstance().getRichNeighborData();
+                            JSONObject msg = new GossipHandler().roundExceed("room");
+
+                            for (ConcurrentMap.Entry<String, ServerData> entry : ServerState.getServerStateInstance().getServersList().entrySet()) {
+                                if (!entry.getKey().equals(message.get("serverid"))) {
+                                    MessageTransferService.sendToServers(msg, entry.getValue().getServerAddress(), entry.getValue().getCoordinationPort());
+                                }
+                            }
+                        }
+                    }
                     case "roundexceed" -> {
                         logger.info("Received message type roundexceed");
                         if (ServerState.getServerStateInstance().getIsIgnorant()){
@@ -206,27 +231,34 @@ public class CoordinationService extends Thread {
                                     ServerData richneighbour = ServerState.getServerStateInstance().getRichNeighborData();
                                     MessageTransferService.sendToServers(msg, richneighbour.getServerAddress(), richneighbour.getCoordinationPort());
                                 }
+                                case "room" -> {
+                                    JSONObject msg = new GossipHandler().pullGossip("pullgossiproom", host, port);
+                                    ServerData richneighbour = ServerState.getServerStateInstance().getRichNeighborData();
+                                    MessageTransferService.sendToServers(msg, richneighbour.getServerAddress(), richneighbour.getCoordinationPort());
+                                }
                             }
                         }
                     }
                     case "pullgossip" -> {
                         logger.info("Received message type pullgossip");
+                        String pulltype = (String) message.get("pulltype");
                         if (!ServerState.getServerStateInstance().getIsIgnorant()){
-                            String pulltype = (String) message.get("pulltype");
                             Thread gossipService = new GossipService("pull", pulltype, message);
                             gossipService.start();
                         } else {
                             logger.info("Rich neighbour is ignorant");
-                            JSONObject msg = new GossipHandler().isIgnorant();
+                            JSONObject msg = new GossipHandler().isIgnorant(pulltype);
                             MessageTransferService.sendToServers(msg, (String) message.get("host"), Integer.parseInt((String) message.get("port")));
 
                         }
                     }
                     case "isignorant" -> {
                         logger.info("Received message type isignorant");
+                        String pulltype = (String) message.get("pulltype");
                         String host = ServerState.getServerStateInstance().getCurrentServerData().getServerAddress();
                         String port = Integer.toString(ServerState.getServerStateInstance().getCurrentServerData().getCoordinationPort());
-                        JSONObject msg = new GossipHandler().pullGossip("pullgossipidentity", host, port);
+                        //JSONObject msg = new GossipHandler().pullGossip("pullgossipidentity", host, port);
+                        JSONObject msg = new GossipHandler().pullGossip(pulltype, host, port);
                         ArrayList<String> serverlist = new ArrayList<String>(ServerState.getServerStateInstance().getServersList().keySet());
                         Random rand = new Random();
                         String randomneighbour = serverlist.get(rand.nextInt(serverlist.size()));
@@ -236,7 +268,15 @@ public class CoordinationService extends Thread {
                     case "pullupdate" -> {
                         logger.info("Received message type pullupdate");
                         ServerState.getServerStateInstance().setIsIgnorant(false);
-                        ServerState.getServerStateInstance().setGlobalClientIDs((ArrayList<String>) message.get("updatedlist"));
+                        String updatedType = (String) message.get("updatetype");
+                        switch (updatedType) {
+                            case "identity" -> {
+                                ServerState.getServerStateInstance().setGlobalClientIDs((ArrayList<String>) message.get("updatedlist"));
+                            }
+                            case "room" -> {
+                                ServerState.getServerStateInstance().setGlobalRoomList((ArrayList<String>) message.get("updatedlist"));
+                            }
+                        }
                     }
                     default -> {
                         // Send other cases to FastBully Service to handle

@@ -97,6 +97,10 @@ public class ChatClientService extends Thread {
                                 MessageTransferService.send(this.clientSocket, responses.get("broadcast"));
                                 MessageTransferService.sendBroadcast(clientThreads_formerRoom, responses.get("broadcast"));
                             }
+                            if (responses.containsKey("gossip")) {
+                                Thread gossipService = new GossipService("send", "gossiproom", responses.get("gossip"));
+                                gossipService.start();
+                            }
                         }
                     }
                     case "joinroom" -> {

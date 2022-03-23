@@ -19,6 +19,7 @@ public class CreateRoomHandler {
     private final RequestHandler serverRequestHandler = new RequestHandler();
     private final ResponseHandler serverResponseHandler = new ResponseHandler();
     private final ClientResponseHandler clientResponseHandler = new ClientResponseHandler();
+    private final GossipHandler gossipHandler = new GossipHandler();
 
     public boolean checkRoomIdUnique(String identity){
 
@@ -47,7 +48,8 @@ public class CreateRoomHandler {
         return response;
     }
 
-    public JSONObject coordinatorNewRoomIdentity(String clientID, String roomid, String serverID) {
+    public Map<String, JSONObject> coordinatorNewRoomIdentity(String clientID, String roomid, String serverID) {
+        Map<String, JSONObject> responses = new HashMap<>();
         JSONObject response;
         if (checkRoomIdUnique(roomid)) {
             ArrayList<Client> clients = new ArrayList<>();
@@ -55,11 +57,15 @@ public class CreateRoomHandler {
             LeaderState.getInstance().addRoomToGlobalList(room);
             logger.info("New room creation accepted");
             response = this.serverResponseHandler.sendCreateRoomServerResponse("true", roomid, clientID);
+            responses.put("response", response);
+            JSONObject gossipMsg = this.gossipHandler.gossipRoom("gossiproom", System.getProperty("serverID"), LeaderState.getInstance().getGlobalRoomList());
+            responses.put("gossip", gossipMsg);
         } else {
             logger.info("New room creation rejected");
             response = this.serverResponseHandler.sendCreateRoomServerResponse("false", roomid, clientID);
+            responses.put("response", response);
         }
-        return response;
+        return responses;
     }
 
     public Map<String, JSONObject> leaderApprovedNewRoomIdentity(String isApproved, Client client, String roomid){
