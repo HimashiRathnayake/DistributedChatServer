@@ -52,7 +52,8 @@ public class NewIdentityHandler {
             LeaderState.getInstance().addClientToGlobalList(client);
             logger.info("New identity creation accepted");
             response = this.serverResponseHandler.sendNewIdentityServerResponse("true", identity);
-            JSONObject gossipMsg = this.gossipHandler.gossipNewIdentity(serverID, identity);
+            //JSONObject gossipMsg = this.gossipHandler.gossipNewIdentity(serverID, identity);
+            JSONObject gossipMsg = this.gossipHandler.gossip("gossipidentity", System.getProperty("serverID"), LeaderState.getInstance().globalClients);
             responses.put("response", response);
             responses.put("gossip", gossipMsg);
         } else {
