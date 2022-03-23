@@ -15,9 +15,14 @@ public class ServerState {
     private static ServerState serverState;
     private ServerData currentServerData;
     private ServerData leaderServerData;
+    private ServerData richNeighborData;
+    private boolean isIgnorant;
+    private final int initialRounds = 1;
     private final ConcurrentMap<String, ServerData> serversList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<String, Room> globalRoomList = new ConcurrentHashMap<>();
+    public ArrayList<String> globalClientId = new ArrayList<>();
     public final ConcurrentHashMap<String, ChatClientService> clientServices = new ConcurrentHashMap<>();
     private final Logger logger = Logger.getLogger(ServerState.class);
 //    private final ConcurrentMap<String, ServerData> higherPriorityServers = new ConcurrentHashMap<>();
@@ -43,6 +48,26 @@ public class ServerState {
         return currentServerData;
     }
 
+    public synchronized ServerData getRichNeighborData() {
+        return richNeighborData;
+    }
+
+    public synchronized Boolean getIsIgnorant() {
+        return isIgnorant;
+    }
+
+    public synchronized int getInitialRounds() {
+        return initialRounds;
+    }
+
+    public synchronized ConcurrentHashMap<String, Room> getGlobalRoomList() {
+        return globalRoomList;
+    }
+
+    public synchronized ArrayList<String> getGlobalClientsIds() {
+        return globalClientId;
+    }
+
     public synchronized ConcurrentMap<String, ServerData> getServersList() {
         return serversList;
     }
@@ -65,6 +90,22 @@ public class ServerState {
 
     public void setLeaderServerData(ServerData leaderServerData) {
         this.leaderServerData = leaderServerData;
+    }
+
+    public void setRichNeighborData(ServerData richNeighborData) {
+        this.richNeighborData = richNeighborData;
+    }
+
+    public void setIsIgnorant(boolean isIgnorant) {
+        this.isIgnorant = isIgnorant;
+    }
+
+    public synchronized void setGlobalRoomList(ConcurrentHashMap<String, Room> globalRoomList) {
+        this.globalRoomList = globalRoomList;
+    }
+
+    public synchronized void setGlobalClientIDs(ArrayList<String> globalClientId) {
+        this.globalClientId = globalClientId;
     }
 
 //    public synchronized List<ServerData> getHigherServerInfo() {

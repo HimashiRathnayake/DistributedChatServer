@@ -12,6 +12,7 @@ import java.util.Set;
 
 import Services.CoordinationService.CoordinationService;
 import Services.CoordinationService.FastBullyService;
+import Services.CoordinationService.GossipService;
 import org.apache.log4j.Logger;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -44,6 +45,8 @@ public class Server {
             FastBullyService.initializeService();
             // ServerData leader = new ServerData("s1", "localhost", 4444, 5555);
             // ServerState.getServerStateInstance().setLeaderServerData(leader);
+
+            GossipService.initializeService();
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
 

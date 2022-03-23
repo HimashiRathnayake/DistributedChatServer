@@ -4,6 +4,7 @@ import Handlers.ChatHandler.*;
 import Models.Client;
 import Models.Server.LeaderState;
 import Models.Server.ServerState;
+import Services.CoordinationService.GossipService;
 import Services.MessageTransferService;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -171,6 +172,11 @@ public class ChatClientService extends Thread {
                                 MessageTransferService.send(this.clientSocket, responses.get("broadcast"));
                                 if (responses.containsKey("broadcast")) {
                                     MessageTransferService.sendBroadcast(clientThreads_newId, responses.get("broadcast"));
+                                }
+                                if (responses.containsKey("gossip")) {
+                                    //Thread gossipService = new GossipService("send", "gossipnewidentity", responses.get("gossip"));
+                                    Thread gossipService = new GossipService("send", "gossipidentity", responses.get("gossip"));
+                                    gossipService.start();
                                 }
                             } else{
                                 this.stopThread(); //close thread if the newIdentity rejected - Only for newIdentity

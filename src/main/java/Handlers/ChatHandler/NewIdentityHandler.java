@@ -1,5 +1,6 @@
 package Handlers.ChatHandler;
 
+import Handlers.CoordinationHandler.GossipHandler;
 import Handlers.CoordinationHandler.RequestHandler;
 import Models.Client;
 import Models.Server.LeaderState;
@@ -17,6 +18,7 @@ public class NewIdentityHandler {
     private final Logger logger = Logger.getLogger(NewIdentityHandler.class);
     private final ClientResponseHandler clientResponseHandler;
     private final RequestHandler serverRequestHandler = new RequestHandler();
+    private final GossipHandler gossipHandler = new GossipHandler();
 
     public NewIdentityHandler(ClientResponseHandler clientResponseHandler){
         this.clientResponseHandler = clientResponseHandler;
@@ -73,6 +75,9 @@ public class NewIdentityHandler {
             logger.info("New identity creation accepted");
             responses.put("client-only", clientResponseHandler.sendNewIdentityResponse("true"));
             responses.put("broadcast", moveToMainHall(client));
+            //JSONObject gossipMsg = this.gossipHandler.gossipNewIdentity(System.getProperty("serverID"), identity);
+            JSONObject gossipMsg = this.gossipHandler.gossip("gossipidentity", System.getProperty("serverID"), LeaderState.getInstance().globalClients);
+            responses.put("gossip", gossipMsg);
         } else if(checkIdentityRules && checkIdentityUnique.equals("askedFromLeader")){
             logger.info("Asked from leader");
             responses.put("askedFromLeader", null);
