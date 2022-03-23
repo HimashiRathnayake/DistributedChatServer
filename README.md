@@ -4,7 +4,7 @@
 
 ```java -jar DistributedChatServer-1.0-SNAPSHOT-jar-with-dependencies.jar -sid serverid -conf config_file_path```
 
-###Distributed chat server application
+### Distributed chat server application
 Distributed chat application with multiple chat servers working together and some chat clients, 
 which can run on different hosts. Chat clients can create an identity and join the main hall of any server. 
 Then they can request to create, delete, join or quit a room from the connected server. 
@@ -17,9 +17,9 @@ We did two improvements on top of the basic communication protocol of this chat 
 
 In this system, server-server communication and server-client communication is handled using TCP connections. TCP connections between clients and servers are established and maintained throughout the client-server interaction, whereas TCP connections between servers are established and terminated as needed.
 
-###Chat Client application can be found on [here](https://github.com/KushanChamindu/CS4262_ChatClient.git).
+### Chat Client application can be found on [here](https://github.com/KushanChamindu/CS4262_ChatClient.git).
 
-##References
+## References
 [1] Seok-Hyoung Lee and Hoon Choi. “The Fast Bully Algorithm: For Electing a Coordinator Process in Distributed Systems”. In: Revised Papers from the International Conference on Information Networking, Wireless Communications Technologies and Network Applications-Part II. ICOIN ’02.
 
 [2]	Gupta R., Maali A.C., and Singh Y.N.. "Adaptive Push-Then-Pull Gossip Algorithm for Scale-free Networks." arXiv preprint arXiv:1310.5985 (2013).
