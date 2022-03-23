@@ -1,4 +1,3 @@
-import Models.Client;
 import Models.Room;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
@@ -36,14 +35,11 @@ public class Server {
 
             new ConfigFileReaderService().readConfigFile(serverID, serversConf);
 
-            Room mainHall = new Room("MainHall-"+serverID, serverID, "", new ArrayList<Client>());
+            Room mainHall = new Room("MainHall-"+serverID, serverID, "", new ArrayList<>());
             ServerState.getServerStateInstance().addNewRoom(mainHall);
 
-            // TODO: Refactor following part - Bully Algo.
             // Initialize Bully Algorithm
             FastBullyService.initializeService();
-//             ServerData leader = new ServerData("s1", "localhost", 4444, 5555);
-//             ServerState.getServerStateInstance().setLeaderServerData(leader);
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
 
