@@ -53,6 +53,11 @@ public class CreateRoomHandler {
         JSONObject response;
         if (checkRoomIdUnique(roomid)) {
             ArrayList<Client> clients = new ArrayList<>();
+            Client client = new Client();
+            client.setServer(serverID);
+            client.setIdentity(clientID);
+            client.setStatus("active");
+            clients.add(client);
             Room room = new Room(roomid, serverID, clientID, clients);
             LeaderState.getInstance().addRoomToGlobalList(room);
             logger.info("New room creation accepted");
