@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class GossipService extends Thread {
     private static final Logger logger = Logger.getLogger(GossipService.class);
-    private final String operation; // wait, push or pull
+    private final String operation; // wait, send, push or pull
     private String request;
     private final GossipHandler gossipHandler = new GossipHandler();
     private JSONObject gossipMsg;
@@ -111,8 +111,21 @@ public class GossipService extends Thread {
                             String serverID = (String) this.gossipMsg.get("serverid");
                             ConcurrentHashMap<String, Room> updatedlist = (ConcurrentHashMap<String, Room>) this.gossipMsg.get("updatedlist");
                             ArrayList<String> roomids = new ArrayList<String>(updatedlist.keySet());
+                            //ArrayList<Room> rooms = new ArrayList<Room>();
+                            ArrayList<String> roomservers = new ArrayList<String>();
+                            ArrayList<String> roomowners = new ArrayList<String>();
+                            ArrayList<ArrayList<String>> clientids = new ArrayList<ArrayList<String>>();
+                            for (Room room : updatedlist.values()) {
+                                roomservers.add(room.getServer());
+                                roomowners.add(room.getOwner());
+                                ArrayList<String> roomclientids = new ArrayList<String>();
+                                for (Client client : room.getClients()) {
+                                    roomclientids.add(client.getIdentity());
+                                }
+                                clientids.add(roomclientids);
+                            }
 
-                            JSONObject gossip = this.gossipHandler.pushgossipRoom("pushgossiproom", serverID, roomids, 1);
+                            JSONObject gossip = this.gossipHandler.pushgossipRoom("pushgossiproom", serverID, roomids, roomservers,roomowners, clientids , 1);
                             MessageTransferService.sendToServers(gossip, richNeighbour.getServerAddress(), richNeighbour.getCoordinationPort());
                         }
                     }
@@ -146,9 +159,12 @@ public class GossipService extends Thread {
                             logger.info("Send pushgossiproom message");
                             String serverID = (String) this.gossipMsg.get("serverid");
                             ArrayList<String> roomids = ServerState.getServerStateInstance().globalRoomList;
+                            ArrayList<String> roomservers = ServerState.getServerStateInstance().globalRoomServersList;
+                            ArrayList<String> roomowners = ServerState.getServerStateInstance().globalRoomOwnersList;
+                            ArrayList<ArrayList<String>> clientids = ServerState.getServerStateInstance().globalRoomClientsList;
                             long gossiprounds = (long) this.gossipMsg.get("rounds");
 
-                            JSONObject gossip = this.gossipHandler.pushgossipRoom("pushgossiproom", serverID, roomids, (int) (gossiprounds+1));
+                            JSONObject gossip = this.gossipHandler.pushgossipRoom("pushgossiproom", serverID, roomids, roomservers, roomowners, clientids, (int) (gossiprounds+1));
                             MessageTransferService.sendToServers(gossip, richNeighbour.getServerAddress(), richNeighbour.getCoordinationPort());
                         } else {
                             logger.info("Stop gossiping - null neighbour");
@@ -168,7 +184,10 @@ public class GossipService extends Thread {
                     case ("pullgossiproom") -> {
                         logger.info("Send pullgossiproom message");
                         ArrayList<String> roomids = ServerState.getServerStateInstance().getGlobalRoomList();
-                        JSONObject gossip = this.gossipHandler.pullUpdate(roomids, "room");
+                        ArrayList<String> roomservers = ServerState.getServerStateInstance().getGlobalRoomServersList();
+                        ArrayList<String> roomowners = ServerState.getServerStateInstance().getGlobalRoomOwnersList();
+                        ArrayList<ArrayList<String>> clientids = ServerState.getServerStateInstance().getGlobalRoomClientsList();
+                        JSONObject gossip = this.gossipHandler.pullUpdateRooms(roomids, roomservers, roomowners, clientids, "room");
                         String port = (String) this.gossipMsg.get("port");
                         MessageTransferService.sendToServers(gossip, (String) this.gossipMsg.get("host"), Integer.parseInt(port));
                     }

@@ -209,6 +209,10 @@ public class CoordinationService extends Thread {
                         long gossiprounds = (long) message.get("rounds");
                         ServerState.getServerStateInstance().setIsIgnorant(false);
                         ServerState.getServerStateInstance().setGlobalRoomList((ArrayList<String>) message.get("roomids"));
+                        ServerState.getServerStateInstance().setGlobalRoomServersList((ArrayList<String>) message.get("roomservers"));
+                        ServerState.getServerStateInstance().setGlobalRoomOwnersList((ArrayList<String>) message.get("roomowners"));
+                        ServerState.getServerStateInstance().setGlobalRoomClientsList((ArrayList<ArrayList<String>>) message.get("clientids"));
+                        System.out.println("Updated");
                         if (gossiprounds < ServerState.getServerStateInstance().getInitialRounds()){
                             Thread gossipService = new GossipService("push", "pushgossiproom", message);
                             gossipService.start();
@@ -272,14 +276,19 @@ public class CoordinationService extends Thread {
                     }
                     case "pullupdate" -> {
                         logger.info("Received message type pullupdate");
-                        ServerState.getServerStateInstance().setIsIgnorant(false);
+                        System.out.println("Updated");
+                        System.out.println(message);
+                        //ServerState.getServerStateInstance().setIsIgnorant(false);
                         String updatedType = (String) message.get("updatetype");
                         switch (updatedType) {
                             case "identity" -> {
                                 ServerState.getServerStateInstance().setGlobalClientIDs((ArrayList<String>) message.get("updatedlist"));
                             }
                             case "room" -> {
-                                ServerState.getServerStateInstance().setGlobalRoomList((ArrayList<String>) message.get("updatedlist"));
+                                ServerState.getServerStateInstance().setGlobalRoomList((ArrayList<String>) message.get("updatedroomids"));
+                                ServerState.getServerStateInstance().setGlobalRoomServersList((ArrayList<String>) message.get("roomservers"));
+                                ServerState.getServerStateInstance().setGlobalRoomOwnersList((ArrayList<String>) message.get("roomowners"));
+                                ServerState.getServerStateInstance().setGlobalRoomClientsList((ArrayList<ArrayList<String>>) message.get("clientids"));
                             }
                         }
                     }

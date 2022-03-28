@@ -22,6 +22,9 @@ public class ServerState {
     public final ConcurrentHashMap<String, Room> roomList = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Client> clients = new ConcurrentHashMap<>();
     public ArrayList<String> globalRoomList = new ArrayList<>();
+    public ArrayList<String> globalRoomServersList = new ArrayList<>();
+    public ArrayList<String> globalRoomOwnersList = new ArrayList<>();
+    public ArrayList<ArrayList<String>> globalRoomClientsList = new ArrayList<>();
     public ArrayList<String> globalClientId = new ArrayList<>();
     public final ConcurrentHashMap<String, ChatClientService> clientServices = new ConcurrentHashMap<>();
     private final Logger logger = Logger.getLogger(ServerState.class);
@@ -64,6 +67,18 @@ public class ServerState {
         return globalRoomList;
     }
 
+    public synchronized ArrayList<String> getGlobalRoomServersList() {
+        return globalRoomServersList;
+    }
+
+    public synchronized ArrayList<String> getGlobalRoomOwnersList() {
+        return globalRoomOwnersList;
+    }
+
+    public synchronized ArrayList<ArrayList<String>> getGlobalRoomClientsList() {
+        return globalRoomClientsList;
+    }
+
     public synchronized ArrayList<String> getGlobalClientsIds() {
         return globalClientId;
     }
@@ -100,7 +115,16 @@ public class ServerState {
                 }
             }
             if(!globalRoomList.isEmpty()){
-                System.out.println(this.globalRoomList);
+                for (int j = 0; j< globalRoomList.size(); j++){
+                    ArrayList<Client> clientsList = new ArrayList<>();
+                    for (String clientID: globalRoomClientsList.get(j)){
+                        Client client = new Client();
+                        client.setIdentity(clientID);
+                        clientsList.add(client);
+                    }
+                    Room room = new Room(globalRoomList.get(j),globalRoomServersList.get(j), globalRoomOwnersList.get(j), clientsList);
+                    LeaderState.getInstance().globalRoomList.put(globalRoomList.get(j), room);
+                }
             }
         }
     }
@@ -115,6 +139,18 @@ public class ServerState {
 
     public synchronized void setGlobalRoomList(ArrayList<String> globalRoomList) {
         this.globalRoomList = globalRoomList;
+    }
+
+    public synchronized void setGlobalRoomServersList(ArrayList<String> globalRoomServersList) {
+        this.globalRoomServersList = globalRoomServersList;
+    }
+
+    public synchronized void setGlobalRoomOwnersList(ArrayList<String> globalRoomOwnersList) {
+        this.globalRoomOwnersList = globalRoomOwnersList;
+    }
+
+    public synchronized void setGlobalRoomClientsList(ArrayList<ArrayList<String>> globalRoomClientsList) {
+        this.globalRoomClientsList = globalRoomClientsList;
     }
 
     public synchronized void setGlobalClientIDs(ArrayList<String> globalClientId) {
