@@ -115,7 +115,16 @@ public class ServerState {
                 }
             }
             if(!globalRoomList.isEmpty()){
-                System.out.println(this.globalRoomList);
+                for (int j = 0; j< globalRoomList.size(); j++){
+                    ArrayList<Client> clientsList = new ArrayList<>();
+                    for (String clientID: globalRoomClientsList.get(j)){
+                        Client client = new Client();
+                        client.setIdentity(clientID);
+                        clientsList.add(client);
+                    }
+                    Room room = new Room(globalRoomList.get(j),globalRoomServersList.get(j), globalRoomOwnersList.get(j), clientsList);
+                    LeaderState.getInstance().globalRoomList.put(globalRoomList.get(j), room);
+                }
             }
         }
     }
