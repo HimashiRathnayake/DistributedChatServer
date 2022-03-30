@@ -89,11 +89,6 @@ public class CreateRoomHandler {
         if (checkRoomIdRules && checkOwnerUnique) {
             String checkRoomIdUnique = checkRoomIdUnique(roomid, client.getIdentity());
             if (checkRoomIdUnique.equals("true")){
-                Client newclient = new Client();
-                newclient.setServer(System.getProperty("serverID"));
-                newclient.setIdentity(client.getIdentity());
-                newclient.setStatus("active");
-                clients.add(newclient);
                 Room room = new Room(roomid, System.getProperty("serverID"), client.getIdentity(), clients);
                 ServerState.getServerStateInstance().roomList.put(roomid, room);
                 LeaderState.getInstance().globalRoomList.put(roomid, room);
