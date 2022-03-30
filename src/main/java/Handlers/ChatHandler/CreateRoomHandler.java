@@ -38,7 +38,7 @@ public class CreateRoomHandler {
 
     public boolean checkRoomIdRules(String identity){
         boolean isIdentityGood;
-        isIdentityGood = identity!= null && identity.matches("^[a-zA-Z0-9]*$")
+        isIdentityGood = identity!= null && identity.matches("^[a-zA-Z][a-zA-Z0-9]*$")
                 && identity.length()>=3
                 && identity.length()<16;
         return isIdentityGood;
@@ -77,6 +77,7 @@ public class CreateRoomHandler {
         String formerID = new ClientListInRoomHandler().getClientsRoomID(client.getIdentity());
         ServerState.getServerStateInstance().addClientToRoom(roomID, client);
         ServerState.getServerStateInstance().removeClientFromRoom(formerID, client);
+        LeaderState.getInstance().globalRoomList.put(roomID, room);
         response = clientResponseHandler.moveToRoomResponse(client.getIdentity(), formerID, roomID);
         return response;
     }
@@ -89,12 +90,14 @@ public class CreateRoomHandler {
         if (checkRoomIdRules && checkOwnerUnique) {
             String checkRoomIdUnique = checkRoomIdUnique(roomid, client.getIdentity());
             if (checkRoomIdUnique.equals("true")){
+//                clients.add(client);
                 Room room = new Room(roomid, System.getProperty("serverID"), client.getIdentity(), clients);
                 ServerState.getServerStateInstance().roomList.put(roomid, room);
-                LeaderState.getInstance().globalRoomList.put(roomid, room);
+//                LeaderState.getInstance().globalRoomList.put(roomid, room);
                 logger.info("New room creation accepted");
                 responses.put("client-only", clientResponseHandler.sendNewRoomResponse(roomid, "true"));
                 responses.put("broadcast", moveToNewRoom(room, client));
+                System.out.println(LeaderState.getInstance().globalRoomList.get("room1").getClients());
                 JSONObject gossipMsg = this.gossipHandler.gossipRoom("gossiproom", System.getProperty("serverID"), LeaderState.getInstance().getGlobalRoomList());
                 responses.put("gossip", gossipMsg);
             } else if(checkRoomIdUnique.equals("askedFromLeader")){
