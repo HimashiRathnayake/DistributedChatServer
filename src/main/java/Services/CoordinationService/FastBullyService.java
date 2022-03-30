@@ -126,6 +126,13 @@ public class FastBullyService extends Thread {
                                 ServerState.getServerStateInstance().setLeaderServerData(currentServer);
                             } else {
                                 logger.info("View messages received.");
+                                JSONObject message = viewMessagesReceived.get(0);
+                                ServerState.getServerStateInstance().setGlobalClientIDs((ArrayList<String>) message.get("clientids"));
+                                ServerState.getServerStateInstance().setGlobalRoomList((ArrayList<String>) message.get("roomids"));
+                                ServerState.getServerStateInstance().setGlobalRoomServersList((ArrayList<String>) message.get("roomservers"));
+                                ServerState.getServerStateInstance().setGlobalRoomOwnersList((ArrayList<String>) message.get("roomowners"));
+                                ServerState.getServerStateInstance().setGlobalRoomClientsList((ArrayList<ArrayList<String>>) message.get("roomclientids"));
+
                                 // Check highest priority server from views
                                 String highestPriorityServerID = getHighestPriorityServersByID(currentServerID, viewMessagesReceived);
                                 if (highestPriorityServerID.equals(currentServerID)) {
@@ -274,8 +281,13 @@ public class FastBullyService extends Thread {
                     case "view" -> {
                         logger.info("Sending View Message");
                         ServerData requestServer = ServerState.getServerStateInstance().getServerDataById((String) this.reply.get("serverid"));
-                        ArrayList<String> activeServers = new ArrayList<>(); // TO DO: get actual active servers.
-                        JSONObject response = messageHandler.viewMessage(activeServers);
+                        // ArrayList<String> activeServers = new ArrayList<>(); // TO DO: get actual active servers.
+                        ArrayList<String> clientids = ServerState.getServerStateInstance().globalClientId;
+                        ArrayList<String> roomids = ServerState.getServerStateInstance().globalRoomList;
+                        ArrayList<String> roomservers = ServerState.getServerStateInstance().globalRoomServersList;
+                        ArrayList<String> roomowners = ServerState.getServerStateInstance().globalRoomOwnersList;
+                        ArrayList<ArrayList<String>> roomclientids = ServerState.getServerStateInstance().globalRoomClientsList;
+                        JSONObject response = messageHandler.viewMessage(clientids, roomids, roomservers, roomowners, roomclientids);
                         try {
                             Thread.sleep(300);
                         } catch (InterruptedException e) {

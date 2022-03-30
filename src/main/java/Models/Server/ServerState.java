@@ -157,6 +157,14 @@ public class ServerState {
         this.globalClientId = globalClientId;
     }
 
+    public synchronized void compareAndSetGlobalRoomClientsList(ArrayList<ArrayList<String>> globalRoomClientsList) {
+        for (ArrayList<String> clientList: globalRoomClientsList) {
+            if (!this.globalRoomClientsList.contains(clientList)) {
+                this.globalRoomClientsList.add(clientList);
+            }
+        }
+    }
+
 //    public synchronized List<ServerData> getHigherServerInfo() {
 //        return new ArrayList<>(higherPriorityServers.values());
 //    }

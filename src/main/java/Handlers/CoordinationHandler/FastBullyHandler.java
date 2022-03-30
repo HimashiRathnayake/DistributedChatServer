@@ -26,11 +26,15 @@ public class FastBullyHandler {
 
     // {"type" : "view", "serverid" : "ServerID", "serverlist" : ["s1", "s2"]}
     @SuppressWarnings("unchecked")
-    public JSONObject viewMessage(ArrayList<String> serverList){
+    public JSONObject viewMessage(ArrayList<String> clientids, ArrayList<String> roomids, ArrayList<String> roomservers, ArrayList<String> roomowners, ArrayList<ArrayList<String>> roomclientids){
         JSONObject message = new JSONObject();
         message.put("type", "view");
         message.put("serverid", System.getProperty("serverID"));
-        message.put("serverlist", serverList);
+        message.put("clientids", clientids);
+        message.put("roomids", roomids);
+        message.put("roomservers", roomservers);
+        message.put("roomowners", roomowners);
+        message.put("roomclientids", roomclientids);
         return message;
     }
 
