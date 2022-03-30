@@ -67,4 +67,12 @@ public class RequestHandler {
         return request;
     }
 
+    public JSONObject sendMainHallResponse(String roomID){
+        JSONObject request = new JSONObject();
+        request.put("type", "mainhall");
+        request.put("serverid", System.getProperty("serverID"));
+        request.put("roomid", roomID);
+        return request;
+    }
+
 }

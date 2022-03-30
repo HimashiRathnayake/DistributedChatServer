@@ -3,6 +3,7 @@ package Services.CoordinationService;
 import Handlers.CoordinationHandler.*;
 import Models.Client;
 import Handlers.ChatHandler.ClientResponseHandler;
+import Models.Room;
 import Models.Server.LeaderState;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
@@ -183,6 +184,14 @@ public class CoordinationService extends Thread {
                             MessageTransferService.send(chatClientService.getClientSocket(), responses.get("broadcast"));
                             MessageTransferService.sendBroadcast(clientThreads_newId, responses.get("broadcast"));
                         }
+                    }
+                    case "mainhall" -> {
+                        String roomID = (String) message.get("roomid");
+                        Room room = new Room(roomID, (String) message.get("serverid"), "", new ArrayList<>());
+                        LeaderState.getInstance().globalRoomList.put(roomID, room);
+                        JSONObject gossipMsg = this.gossipHandler.gossipRoom("gossiproom", System.getProperty("serverID"), LeaderState.getInstance().getGlobalRoomList());
+                        Thread gossipService = new GossipService("send", "gossiproom", gossipMsg);
+                        gossipService.start();
                     }
                     case "pushgossipidentity" -> {
                         logger.info("Received message type pushgossipidentity");

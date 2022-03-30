@@ -1,4 +1,4 @@
-import Models.Room;
+import Handlers.ChatHandler.MainHallHandler;
 import Models.Server.ServerData;
 import Models.Server.ServerState;
 import Services.ConfigFileReaderService;
@@ -6,7 +6,6 @@ import Services.ConfigFileReaderService;
 import java.net.*;
 import java.io.*;
 import java.nio.channels.*;
-import java.util.ArrayList;
 import java.util.Set;
 
 import Services.CoordinationService.CoordinationService;
@@ -36,13 +35,14 @@ public class Server {
 
             new ConfigFileReaderService().readConfigFile(serverID, serversConf);
 
-            Room mainHall = new Room("MainHall-"+serverID, serverID, "", new ArrayList<>());
-            ServerState.getServerStateInstance().addNewRoom(mainHall);
-
             // Initialize Bully Algorithm
             FastBullyService.initializeService();
-
             GossipService.initializeService();
+
+            Thread mainHallHandler = new MainHallHandler();
+            mainHallHandler.start();
+//            Room mainHall = new Room("MainHall-"+serverID, serverID, "", new ArrayList<>());
+//            ServerState.getServerStateInstance().addNewRoom(mainHall);
 
             ServerData server_info = ServerState.getServerStateInstance().getCurrentServerData();
 
