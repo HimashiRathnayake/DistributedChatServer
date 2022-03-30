@@ -105,7 +105,6 @@ public class CreateRoomHandler {
                 logger.info("New room creation accepted");
                 responses.put("client-only", clientResponseHandler.sendNewRoomResponse(roomid, "true"));
                 responses.put("broadcast", moveToNewRoom(room, client));
-                System.out.println(LeaderState.getInstance().globalRoomList.get("room1").getClients());
                 JSONObject gossipMsg = this.gossipHandler.gossipRoom("gossiproom", System.getProperty("serverID"), LeaderState.getInstance().getGlobalRoomList());
                 responses.put("gossip", gossipMsg);
             } else if(checkRoomIdUnique.equals("askedFromLeader")){

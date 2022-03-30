@@ -70,7 +70,7 @@ public class ChatClientService extends Thread {
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
                 JSONObject message = (JSONObject) parser.parse(in.readLine());
                 String type = (String) message.get("type");
-                System.out.println(message);
+                //System.out.println(message);
 
                 switch (type) {
                     case "list" -> {

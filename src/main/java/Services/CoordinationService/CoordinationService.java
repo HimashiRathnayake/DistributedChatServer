@@ -221,7 +221,7 @@ public class CoordinationService extends Thread {
                         ServerState.getServerStateInstance().setGlobalRoomServersList((ArrayList<String>) message.get("roomservers"));
                         ServerState.getServerStateInstance().setGlobalRoomOwnersList((ArrayList<String>) message.get("roomowners"));
                         ServerState.getServerStateInstance().setGlobalRoomClientsList((ArrayList<ArrayList<String>>) message.get("clientids"));
-                        System.out.println("Updated");
+//                        System.out.println("Updated");
                         if (gossiprounds < ServerState.getServerStateInstance().getInitialRounds()){
                             Thread gossipService = new GossipService("push", "pushgossiproom", message);
                             gossipService.start();
@@ -285,8 +285,8 @@ public class CoordinationService extends Thread {
                     }
                     case "pullupdate" -> {
                         logger.info("Received message type pullupdate");
-                        System.out.println("Updated");
-                        System.out.println(message);
+//                        System.out.println("Updated");
+//                        System.out.println(message);
                         //ServerState.getServerStateInstance().setIsIgnorant(false);
                         String updatedType = (String) message.get("updatetype");
                         switch (updatedType) {
