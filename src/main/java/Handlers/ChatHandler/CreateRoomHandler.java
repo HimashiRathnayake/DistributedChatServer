@@ -77,6 +77,14 @@ public class CreateRoomHandler {
         String formerID = new ClientListInRoomHandler().getClientsRoomID(client.getIdentity());
         ServerState.getServerStateInstance().addClientToRoom(roomID, client);
         ServerState.getServerStateInstance().removeClientFromRoom(formerID, client);
+        ServerState.getServerStateInstance().getGlobalRoomList().add(roomID);
+        ServerState.getServerStateInstance().getGlobalRoomServersList().add(room.getServer());
+        ServerState.getServerStateInstance().getGlobalRoomOwnersList().add(room.getOwner());
+        ArrayList<String> roomclientids = new ArrayList<String>();
+        for (Client roomclient : room.getClients()) {
+            roomclientids.add(roomclient.getIdentity());
+        }
+        ServerState.getServerStateInstance().getGlobalRoomClientsList().add(roomclientids);
         LeaderState.getInstance().globalRoomList.put(roomID, room);
         response = clientResponseHandler.moveToRoomResponse(client.getIdentity(), formerID, roomID);
         return response;
